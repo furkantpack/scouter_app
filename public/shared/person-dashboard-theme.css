@@ -1,0 +1,85 @@
+.person-main{
+  --person-ink:#1c1917;
+  --person-muted:#78716c;
+  --person-line:#e7e5e4;
+  --person-surface:#fff;
+  --person-soft:#fafaf9;
+  --person-violet:#7866e8;
+  max-width:none;
+  background:#fff;
+}
+.person-main .topbar{height:54px;border-bottom:1px solid #f5f5f4}
+.person-main .user-chip{font-size:14px;color:var(--person-ink)}
+.person-main .hero{padding:27px 0 24px}
+.person-main .hero h1{font-size:28px;line-height:1.2;color:var(--person-ink)}
+.person-main .hero p{margin-top:5px;font-size:17px;line-height:1.45;color:var(--person-muted);letter-spacing:-.2px}
+.person-main .hero-actions{margin-top:20px}
+.person-main .btn{
+  height:40px;padding:0 16px;border-color:var(--person-line);border-radius:9px;
+  font-size:13px;font-weight:600;box-shadow:0 1px 2px #1018280a;
+}
+.person-main .btn.primary{background:#1c1917;border-color:#1c1917}
+.person-main .status-banner{
+  padding:19px 21px;margin-bottom:18px;border-color:var(--person-line);
+  border-radius:13px;background:linear-gradient(110deg,#faf8ff,#fff);box-shadow:0 2px 7px #10182808;
+}
+.person-main .status-copy strong{font-size:15px;color:var(--person-ink)}
+.person-main .status-copy p{font-size:13px;line-height:1.5;color:var(--person-muted)}
+.person-main .metric-grid{display:none}
+.person-main .analytics-components{margin-bottom:28px}
+.person-main .analytics-card{min-height:190px;padding:20px;border-radius:13px}
+.person-main .analytics-head h3{font-size:15px}
+.person-main .analytics-value{font-size:34px}
+.person-main .analytics-change,.person-main .analytics-legend{font-size:11px}
+.person-main .gauge-item,.person-main .total-row span{font-size:11px}
+.person-main .task-wrap{
+  padding:0;border:1px solid var(--person-line);border-radius:13px;
+  background:var(--person-surface);box-shadow:0 2px 7px #1018280a;overflow:auto;
+}
+.person-main .task-head,.person-main .task-row{
+  min-width:930px;grid-template-columns:minmax(330px,2.2fr) .72fr 1fr .8fr .85fr 30px;
+  gap:18px;padding:0 20px;
+}
+.person-main .task-head{
+  height:44px;background:var(--person-soft);color:#a8a29e;font-size:11px;font-weight:600;
+  border-bottom:1px solid var(--person-line);
+}
+.person-main .task-row{min-height:66px;border-top:1px solid #f5f5f4;font-size:13px}
+.person-main .task-row:first-of-type{border-top:0}
+.person-main .candidate-name{gap:12px}
+.person-main .candidate-name strong{font-size:13px;color:var(--person-ink)}
+.person-main .candidate-name span:last-child{font-size:12px;color:var(--person-muted)}
+.person-main .face{width:34px;height:34px;border-radius:9px;font-size:10px}
+.person-main .type,.person-main .due,.person-main .priority,.person-main .progress-cell{font-size:12px;color:var(--person-muted)}
+.person-main .bar{width:60px;height:7px}
+.person-main .section-title{margin:31px 0 14px}
+.person-main .section-title h2{font-size:17px;font-weight:650;color:var(--person-ink)}
+.person-main .section-title span{font-size:13px}
+.person-main .section-title a{font-size:12px;font-weight:600;color:var(--person-muted)}
+.person-main .company-grid{gap:14px}
+.person-main .company-card,.person-main .job-card{
+  border-color:var(--person-line);border-radius:13px;background:var(--person-surface);
+  box-shadow:0 2px 7px #1018280a;transition:transform .18s ease,box-shadow .18s ease;
+}
+.person-main .company-card{padding:18px}
+.person-main .company-card:hover,.person-main .job-card:hover{transform:translateY(-2px);box-shadow:0 8px 18px #10182812}
+.person-main .company-logo{width:42px;height:42px;border-radius:10px;font-size:14px}
+.person-main .company-card h3,.person-main .job-body h3{font-size:14px;color:var(--person-ink)}
+.person-main .company-card p,.person-main .job-body p{font-size:12px;line-height:1.45;color:var(--person-muted)}
+.person-main .company-meta{margin-top:17px;padding-top:14px;font-size:11px}
+.person-main .company-meta strong{color:var(--person-violet)}
+.person-main .job-grid{gap:14px}
+.person-main .job-card{min-height:104px;padding:17px}
+.person-main .job-tags{gap:6px;margin-top:10px}
+.person-main .job-tags span{padding:5px 8px;font-size:10px;background:#f5f5f4}
+.person-main .job-reward{font-size:13px;color:var(--person-violet)}
+.person-main .job-reward span{font-size:10px}
+@media(max-width:1180px){
+  .person-main .company-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:760px){
+  .person-main .hero{padding-top:20px}
+  .person-main .hero h1{font-size:24px}
+  .person-main .status-banner{padding:16px}
+  .person-main .company-grid,.person-main .job-grid{grid-template-columns:1fr}
+}

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Amélie Laurent · Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--purple:#7f56d9;--purple-dark:#6941c6;--ink:#101828;--muted:#667085;--line:#eaecf0;--soft:#f9fafb}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--ink);background:#fff}
+    button,a{font:inherit}a{text-decoration:none;color:inherit}.app{min-height:100vh}
+    .sidebar{position:fixed;z-index:10;inset:0 auto 0 0;width:280px;padding:26px 20px 22px;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column}
+    .brand{display:flex;align-items:center;gap:10px;padding:0 10px 30px;font-weight:700}.brand-mark{width:32px;height:32px;border-radius:9px;background:radial-gradient(circle at 65% 30%,#d6bbfb 0 18%,transparent 19%),linear-gradient(135deg,#f4ebff,#7f56d9);box-shadow:inset 0 0 0 7px #f4ebff}
+    .search{height:42px;border:1px solid #d0d5dd;border-radius:8px;display:flex;align-items:center;gap:9px;padding:0 12px;color:var(--muted);box-shadow:0 1px 2px #1018280d;margin-bottom:20px}.search span:last-child{margin-left:auto;font-size:12px;border:1px solid #d0d5dd;border-radius:4px;padding:2px 5px}
+    .nav-label{font-size:12px;font-weight:600;color:#98a2b3;padding:14px 12px 7px}.nav-item{height:42px;padding:0 12px;border-radius:7px;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;color:#344054}.nav-item:hover,.nav-item.active{background:#f9f5ff;color:#6941c6}.nav-icon{width:20px;text-align:center;font-size:17px}.count{margin-left:auto;background:#f2f4f7;color:#344054;border-radius:12px;padding:2px 8px;font-size:12px}
+    .sidebar-footer{margin-top:auto}.upgrade{padding:16px;border-radius:10px;background:#f9fafb;font-size:13px;color:#475467;line-height:1.45}.upgrade strong{display:block;color:#344054;margin-bottom:4px}.upgrade a{display:inline-block;color:#6941c6;font-weight:600;margin-top:10px}.user{display:flex;align-items:center;gap:11px;padding:18px 8px 0;margin-top:18px;border-top:1px solid var(--line)}.user img{width:40px;height:40px;border-radius:50%;object-fit:cover}.user strong,.user span{display:block;font-size:13px}.user span{color:var(--muted);margin-top:3px}
+    .main{margin-left:280px;min-width:0}.cover{height:182px;background:linear-gradient(120deg,#203e2c99,#71826655),url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80') center/cover}
+    .profile-head{position:relative;display:flex;align-items:flex-start;gap:24px;padding:0 40px 34px}.avatar-wrap{position:relative;flex:0 0 auto;margin-top:-68px}.avatar{width:144px;height:144px;object-fit:cover;border-radius:50%;border:5px solid #fff;box-shadow:0 1px 3px #10182822,0 12px 28px #1018281b}.verified{position:absolute;right:4px;bottom:10px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#2e90fa;color:#fff;border:3px solid #fff;font-weight:700;font-size:18px}.identity{padding-top:22px}.identity h1{margin:0 0 8px;font-size:30px;line-height:1.2}.identity p{margin:0;color:#475467;font-size:17px}.actions{display:flex;gap:12px;margin-left:auto;padding-top:22px}.btn{height:42px;border:1px solid #d0d5dd;border-radius:8px;background:#fff;padding:0 17px;font-weight:600;box-shadow:0 1px 2px #1018280d;cursor:pointer}.btn.icon{width:44px;padding:0;font-size:20px;color:#667085}.btn.primary{background:var(--purple);border-color:var(--purple);color:#fff}.btn:hover{transform:translateY(-1px)}
+    .content{padding:0 40px 70px}.section{padding:28px 0;border-top:1px solid var(--line)}.section:first-child{border-top:0}.section-title-row{display:flex;align-items:flex-start}.section h2{font-size:18px;margin:0 0 8px}.section-sub{margin:0;color:var(--muted)}.more{margin-left:auto;border:0;background:none;font-size:24px;line-height:1;color:#98a2b3;cursor:pointer}.about-grid{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(300px,1fr);gap:64px}.about-copy h3{font-size:16px;margin:4px 0 14px}.about-copy p{color:#344054;line-height:1.58;margin:0 0 14px;max-width:820px}.read-more{border:0;background:none;color:#6941c6;font-weight:600;padding:4px 0;cursor:pointer}.details{display:grid;grid-template-columns:1fr 1fr;gap:28px 36px}.detail span{display:block;color:#475467;margin-bottom:10px}.detail a,.detail strong{color:#6941c6;font-weight:600}.detail .location{color:#344054}.experience-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:28px}.job{border:1px solid #e4e7ec;border-radius:12px;box-shadow:0 1px 2px #1018280d;overflow:hidden;background:#fff}.job-main{padding:24px}.job-top{display:flex;gap:14px;align-items:center}.logo{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:26px;border:2px solid #fff;box-shadow:0 0 0 1px #d0d5dd}.logo.c{background:linear-gradient(135deg,#9333ea,#5b21b6)}.logo.s{background:linear-gradient(135deg,#4ade80,#047857)}.logo.e{background:linear-gradient(135deg,#818cf8,#4338ca)}.job h3{font-size:16px;margin:0 0 4px}.job p{margin:0;color:#475467}.date{padding-top:26px;font-size:14px}.job-link{display:block;border-top:1px solid var(--line);padding:17px 24px;text-align:right;color:#6941c6;font-weight:600;font-size:14px}
+    .projects-head{display:flex;align-items:center;margin-bottom:22px}.projects-head h2{margin:0}.tabs{display:flex;gap:4px;padding:4px;border:1px solid #e4e7ec;border-radius:10px;background:#fcfcfd}.tab{border:0;background:transparent;border-radius:7px;padding:9px 14px;font-weight:600;color:#667085;cursor:pointer}.tab.active{background:#fff;color:#344054;box-shadow:0 1px 3px #1018281a}.projects{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}.project{aspect-ratio:1.35;border-radius:10px;overflow:hidden;border:1px solid #e4e7ec;background:#f2f4f7;position:relative}.project-inner{position:absolute;inset:11% 6% 0;border:1px solid #d0d5dd;border-radius:7px 7px 0 0;background:#fff;box-shadow:0 8px 20px #10182824}.project:nth-child(2){background:#eef2ee}.project:nth-child(3){background:#e7e3e5}.project:nth-child(4){background:#e8eee8}.mini-top{height:10%;border-bottom:1px solid #e4e7ec}.mini-layout{display:grid;grid-template-columns:22% 1fr;height:90%}.mini-side{border-right:1px solid #eaecf0;background:#fafafa}.mini-content{padding:10%;background:linear-gradient(#f2f4f7 0 0) 10% 14%/55% 6% no-repeat,linear-gradient(#e4e7ec 0 0) 10% 28%/80% 3% no-repeat,linear-gradient(135deg,#d1fadf,#f4ebff) 50% 70%/80% 48% no-repeat}.project:nth-child(3) .project-inner{filter:brightness(.72)}.project:nth-child(4) .mini-layout{grid-template-columns:14% 27% 1fr}
+    .mobile-bar{display:none}
+    @media(max-width:1100px){.sidebar{width:232px}.main{margin-left:232px}.experience-grid{grid-template-columns:1fr}.projects{grid-template-columns:1fr 1fr}.about-grid{grid-template-columns:1fr;gap:30px}}
+    @media(max-width:760px){.sidebar{display:none}.main{margin-left:0}.mobile-bar{position:sticky;top:0;z-index:20;height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 18px}.cover{height:120px}.profile-head{padding:0 20px 28px;flex-wrap:wrap}.avatar{width:108px;height:108px}.avatar-wrap{margin-top:-50px}.identity{padding-top:15px}.identity h1{font-size:24px}.actions{width:100%;padding-top:0;margin:0}.actions .btn:not(.primary){display:none}.actions .primary{width:100%}.content{padding:0 20px 50px}.about-grid{grid-template-columns:1fr}.details{grid-template-columns:1fr 1fr}.experience-grid,.projects{grid-template-columns:1fr}.tabs{overflow:auto}.projects-head{align-items:flex-start;gap:14px;flex-direction:column}}
+  </style>
+  <link rel="stylesheet" href="/shared/sidebar.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar app-sidebar" data-active="profile"></aside>
+    <main class="main">
+      <header class="mobile-bar"><a class="brand" style="padding:0" href="#"><span class="brand-mark"></span>Untitled UI</a><button class="btn icon">☰</button></header>
+      <div class="cover"></div>
+      <section class="profile-head">
+        <div class="avatar-wrap"><img class="avatar" src="https://www.untitledui.com/images/avatars/amelie-laurent?fm=webp&q=80" alt="Amélie Laurent"><span class="verified">✓</span></div>
+        <div class="identity"><h1>Amélie Laurent</h1><p>I'm a Product Designer based in Melbourne.</p></div>
+        <div class="actions"><button class="btn icon" aria-label="More actions">•••</button><button class="btn">View portfolio</button><button class="btn primary" id="follow">Follow</button></div>
+      </section>
+      <div class="content">
+        <section class="section">
+          <div class="section-title-row"><div><h2>Experience</h2><p class="section-sub">I specialize in UX/UI design, brand strategy, and Webflow development.</p></div><button class="more">⋮</button></div>
+        </section>
+        <section class="section">
+          <div class="about-grid">
+            <div class="about-copy"><h3>About me</h3><p>I'm a Product Designer based in Melbourne, Australia. I enjoy working on product design, design systems, and Webflow projects.</p><p>I've worked with some of the world's most exciting companies, including Coinbase, Stripe, and Linear. I'm passionate about helping startups grow, improve their UX and customer experience, and to raise venture capital through good design.</p><p class="extra" hidden>My work has been featured on Typewolf, Mindsparkle Magazine, Webflow, Fonts In Use, CSS Winner, Httpster, Siteinspire, and Best Website Gallery.</p><button class="read-more" id="readMore">Read more</button></div>
+            <div class="details"><div class="detail"><span>Location</span><strong class="location">🇦🇺 Melbourne, AU</strong></div><div class="detail"><span>Website</span><a href="#">amelielaurent.com ↗</a></div><div class="detail"><span>Portfolio</span><a href="#">@amelielaurent ↗</a></div><div class="detail"><span>Email</span><a href="mailto:hello@amelie.com">hello@amelie.com ↗</a></div></div>
+          </div>
+          <div class="experience-grid">
+            <article class="job"><div class="job-main"><div class="job-top"><span class="logo c">◐</span><div><h3>Lead Product Designer</h3><p>ContrastAI</p></div></div><p class="date">May 2020 – Present</p></div><a class="job-link" href="#">View project</a></article>
+            <article class="job"><div class="job-main"><div class="job-top"><span class="logo s">◆</span><div><h3>Product Designer</h3><p>Sisyphus</p></div></div><p class="date">Jan 2018 – May 2020</p></div><a class="job-link" href="#">View project</a></article>
+            <article class="job"><div class="job-main"><div class="job-top"><span class="logo e">⛓</span><div><h3>UX Designer</h3><p>Ephemeral</p></div></div><p class="date">Mar 2017 – Jan 2018</p></div><a class="job-link" href="#">View project</a></article>
+          </div>
+        </section>
+        <section class="section" id="projects">
+          <div class="projects-head"><h2>Projects</h2><button class="more">⋮</button></div>
+          <div class="tabs" role="tablist"><button class="tab">View all</button><button class="tab">Web design</button><button class="tab active">Product design</button><button class="tab">Branding</button></div>
+          <div class="projects" style="margin-top:28px">
+            <div class="project"><div class="project-inner"><div class="mini-top"></div><div class="mini-layout"><div class="mini-side"></div><div class="mini-content"></div></div></div></div>
+            <div class="project"><div class="project-inner"><div class="mini-top"></div><div class="mini-layout"><div class="mini-side"></div><div class="mini-content"></div></div></div></div>
+            <div class="project"><div class="project-inner"><div class="mini-top"></div><div class="mini-layout"><div class="mini-side"></div><div class="mini-content"></div></div></div></div>
+            <div class="project"><div class="project-inner"><div class="mini-top"></div><div class="mini-layout"><div class="mini-side"></div><div class="mini-side"></div><div class="mini-content"></div></div></div></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="/shared/sidebar.js"></script>
+  <script>
+    document.querySelector('#follow').addEventListener('click',e=>{const on=e.currentTarget.textContent==='Following';e.currentTarget.textContent=on?'Follow':'Following';e.currentTarget.setAttribute('aria-pressed',String(!on))});
+    document.querySelector('#readMore').addEventListener('click',e=>{const x=document.querySelector('.extra');x.hidden=!x.hidden;e.currentTarget.textContent=x.hidden?'Read more':'Read less'});
+    document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active')}));
+  </script>
+</body>
+</html>

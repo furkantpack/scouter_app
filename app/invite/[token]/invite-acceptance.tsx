@@ -1,0 +1,5 @@
+'use client';
+import { useState } from 'react';
+import * as Button from '@/components/ui/button';
+import { requestJson } from '@/lib/request-json';
+export default function InviteAcceptance({token,email}:{token:string;email:string}){const [pending,setPending]=useState(false);const [error,setError]=useState('');return <main className='mx-auto flex min-h-screen max-w-lg flex-col justify-center gap-6 p-6'><h1 className='text-title-h5'>Join organization</h1><p>Signed in as {email}. The invitation must match this email address.</p>{error&&<p role='alert'>{error}</p>}<Button.Root disabled={pending} onClick={async()=>{if(pending)return;setPending(true);setError('');try{await requestJson('/api/invites/accept',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({token})});window.location.assign('/auth/continue');}catch(e){setError(e instanceof Error?e.message:'Could not accept invite.');setPending(false);}}}>{pending?'Accepting…':'Accept invitation'}</Button.Root><a href='/login?error=account' className='underline'>Use a different account</a></main>;}

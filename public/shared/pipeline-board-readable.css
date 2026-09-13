@@ -1,0 +1,18 @@
+.pipeline-board-head{padding:20px 20px 15px}
+.pipeline-board-title h2{font-size:17px}
+.pipeline-board-title p{font-size:12px;line-height:1.45}
+.pipeline-search{width:210px;height:38px;padding:0 12px;font-size:12px}
+.pipeline-control{height:38px;padding:0 13px;font-size:12px}
+.pipeline-view-tabs{padding:0 20px}
+.pipeline-view-tab{height:42px;font-size:12px}
+.pipeline-group-head{height:42px;padding:0 18px;font-size:12px}
+.pipeline-group-count{font-size:10px}
+.pipeline-table th{height:38px;font-size:10px}
+.pipeline-table td{height:58px;font-size:11px;cursor:pointer}
+.pipeline-person strong{font-size:12px}
+.pipeline-person span{font-size:10px}
+.pipeline-avatar{width:30px;height:30px;font-size:8px}
+.role-tag,.priority-tag{padding:5px 7px;font-size:9px}
+.referrer-avatar{width:25px;height:25px;font-size:7px}
+.pipeline-table tbody tr{transition:background .15s ease}
+.pipeline-table tbody tr:hover{background:#faf8ff}

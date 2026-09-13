@@ -1,0 +1,87 @@
+/* Refined scale: approximately 1.5x the original dashboard. */
+.main{padding:24px 40px 58px}
+.main .topbar{height:48px}
+.main .user-chip{font-size:14px}
+.main .top-actions{font-size:12px}
+.main .hero{padding:17px 0 27px}
+.main .hero h1{font-size:30px}
+.main .hero p{font-size:21px}
+.main .hero-actions{gap:9px;margin-top:18px}
+.main .btn{height:40px;padding:0 15px;font-size:13px}
+
+.main .analytics-components{gap:16px;margin-bottom:29px}
+.main .analytics-card{min-height:205px;padding:21px}
+.main .analytics-head{margin-bottom:18px}
+.main .analytics-head h3{font-size:16px}
+.main .analytics-more{font-size:20px}
+.main .analytics-value{font-size:36px}
+.main .analytics-change{font-size:11px}
+.main .segment-bar{height:9px;margin:18px 0 14px}
+.main .analytics-legend{gap:14px;font-size:11px}
+.main .gauge{width:155px;height:82px}
+.main .gauge:before{height:155px;-webkit-mask:radial-gradient(circle at center,transparent 0 56px,#000 57px);mask:radial-gradient(circle at center,transparent 0 56px,#000 57px)}
+.main .gauge-value strong{font-size:27px}
+.main .gauge-value span{font-size:10px}
+.main .gauge-list{gap:11px;min-width:125px}
+.main .gauge-item{grid-template-columns:7px 35px 1fr;gap:7px;font-size:11px}
+.main .gauge-item i{width:6px;height:14px}
+.main .gauge-item strong{font-size:15px}
+.main .total-rows{gap:12px}
+.main .total-row{padding:13px}
+.main .total-row strong{font-size:24px}
+.main .total-row b{font-size:10px}
+.main .total-row span{font-size:11px}
+
+.main .pipeline-board-head{padding:22px 21px 17px}
+.main .pipeline-board-mark{width:40px;height:40px;font-size:15px}
+.main .pipeline-board-title h2{font-size:20px}
+.main .pipeline-board-title p{font-size:13px}
+.main .pipeline-search{width:220px;height:41px;font-size:13px}
+.main .pipeline-control{height:41px;padding:0 14px;font-size:13px}
+.main .pipeline-view-tabs{gap:24px;padding:0 21px}
+.main .pipeline-view-tab{height:46px;font-size:13px}
+.main .pipeline-group-head{height:47px;padding:0 19px;font-size:13px}
+.main .pipeline-group-count{font-size:11px}
+.main .pipeline-table th{height:41px;font-size:11px}
+.main .pipeline-table td{height:65px;font-size:12px}
+.main .pipeline-check{width:15px;height:15px}
+.main .pipeline-avatar{width:35px;height:35px;font-size:9px}
+.main .pipeline-person strong{font-size:13px}
+.main .pipeline-person span{font-size:11px}
+.main .role-tag,.main .priority-tag{padding:6px 8px;font-size:10px}
+.main .referrer-avatar{width:28px;height:28px;font-size:8px}
+
+.main .section-title{margin:31px 0 15px}
+.main .section-title h2{font-size:19px}
+.main .section-title span{font-size:15px}
+.main .section-title a{font-size:12px}
+.main .cards{gap:16px}
+.main .tag{padding:5px 8px;font-size:10px}
+.main .person-card h3{font-size:13px}
+.main .person-card p{font-size:11px}
+.main .feature{height:175px;padding:26px}
+.main .feature small{font-size:10px}
+.main .feature h3{font-size:23px}
+.main .feature p{font-size:11px}
+.main .feature .reward{padding:7px 10px;font-size:10px}
+
+.candidate-drawer{width:min(650px,94vw)}
+.candidate-drawer .drawer-head{padding:22px 24px}
+.candidate-drawer .drawer-head h2{font-size:21px}
+.candidate-drawer .drawer-head p,.candidate-drawer .drawer-candidate span{font-size:12px}
+.candidate-drawer .drawer-candidate strong{font-size:14px}
+.candidate-drawer .drawer-avatar{width:39px;height:39px;font-size:11px}
+.candidate-drawer .drawer-steps{gap:9px;padding:17px 23px}
+.candidate-drawer .drawer-step{min-height:54px;gap:6px;font-size:11px}
+.candidate-drawer .drawer-step span{font-size:11px}
+.candidate-drawer .drawer-step i{width:28px;height:28px;font-size:11px}
+.candidate-drawer .drawer-body{padding:23px}
+.candidate-drawer .drawer-panel h3{font-size:18px}
+.candidate-drawer .drawer-panel>p{font-size:12px}
+.candidate-drawer .action-option{min-height:68px;padding:13px}
+.candidate-drawer .action-option strong{font-size:13px}
+.candidate-drawer .action-option span{font-size:11px}
+.candidate-drawer .drawer-label{font-size:11px}
+.candidate-drawer .drawer-input,.candidate-drawer .drawer-select{height:41px;font-size:13px}
+.candidate-drawer .drawer-textarea{min-height:96px;font-size:13px}
+.candidate-drawer .drawer-btn{height:40px;padding:0 15px;font-size:13px}

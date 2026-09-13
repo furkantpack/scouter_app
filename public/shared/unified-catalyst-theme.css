@@ -1,0 +1,43 @@
+/* Shared visual tokens for migrated Referly pages.
+   These mirror the Catalyst login page without changing page behavior. */
+:root{
+  --unified-accent:#ff7a1a;
+  --unified-accent-strong:#f97316;
+  --unified-accent-soft:#fff4ec;
+  --unified-ink:#171717;
+  --unified-sub:#525252;
+  --unified-muted:#737373;
+  --unified-line:#e7e5e4;
+  --unified-radius-sm:9px;
+  --unified-radius-md:14px;
+  --unified-radius-lg:24px;
+}
+html,body,button,input,textarea,select{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+body{
+  color:var(--unified-ink);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+button,input,textarea,select{font-weight:inherit}
+.btn,.exit,.launch,.primary,.secondary{
+  border-radius:var(--unified-radius-sm);
+}
+.card,.metric,.company-card,.job-card,.group,.intro,.help-card,
+.task-wrap,.network-table-shell,.person-card,.status-banner{
+  border-color:var(--unified-line);
+}
+.app-sidebar__item.active{
+  background:var(--unified-accent-soft);
+  color:var(--unified-accent-strong);
+}
+.app-sidebar__item.active .app-sidebar__badge{
+  background:#ffedd5;
+  color:#c2410c;
+}
+.app-sidebar__item--action{
+  border-color:#fed7aa;
+  background:#fff7ed;
+  color:#c2410c;
+}
