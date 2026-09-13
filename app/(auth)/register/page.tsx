@@ -1,8 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { requestJson } from '@/lib/request-json';
-import { safeNext } from '@/lib/auth-validation';
 import {
   RiEyeLine,
   RiEyeOffLine,
@@ -12,13 +10,14 @@ import {
   RiUserAddLine,
 } from '@remixicon/react';
 
+import { safeNext } from '@/lib/auth-validation';
+import { requestJson } from '@/lib/request-json';
 import { cn } from '@/utils/cn';
 import * as FancyButton from '@/components/ui/fancy-button';
 import * as Hint from '@/components/ui/hint';
 import * as Input from '@/components/ui/input';
 import * as Label from '@/components/ui/label';
-
-
+import { GoogleAuthButton } from '@/components/google-auth-button';
 
 function PasswordInput(
   props: React.ComponentPropsWithoutRef<typeof Input.Input>,
@@ -34,7 +33,11 @@ function PasswordInput(
           placeholder='••••••••••'
           {...props}
         />
-        <button aria-label={showPassword ? 'Hide password' : 'Show password'} type='button' onClick={() => setShowPassword((s) => !s)}>
+        <button
+          aria-label={showPassword ? 'Hide password' : 'Show password'}
+          type='button'
+          onClick={() => setShowPassword((s) => !s)}
+        >
           {showPassword ? (
             <RiEyeOffLine className='size-5 text-text-soft-400 group-has-[disabled]:text-text-disabled-300' />
           ) : (
@@ -51,29 +54,55 @@ export default function PageRegister() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [pending, setPending] = React.useState(false);
+  const [oauthPending, setOauthPending] = React.useState(false);
   const [error, setError] = React.useState('');
   const [message, setMessage] = React.useState('');
 
   const inFlight = React.useRef(false);
   async function signUp(form: HTMLFormElement) {
-    if (inFlight.current || !form.reportValidity()) return;
-    inFlight.current = true; setPending(true); setError(''); setMessage('');
+    if (inFlight.current || oauthPending || !form.reportValidity()) return;
+    inFlight.current = true;
+    setPending(true);
+    setError('');
+    setMessage('');
     try {
       const values = new FormData(form);
-      const result = await requestJson('/api/auth/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({...Object.fromEntries(values),next:safeNext(new URLSearchParams(window.location.search).get('next'))}) });
-      if (result.signedIn) window.location.assign(safeNext(new URLSearchParams(window.location.search).get('next')));
+      const result = await requestJson('/api/auth/register', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          ...Object.fromEntries(values),
+          next: safeNext(
+            new URLSearchParams(window.location.search).get('next'),
+          ),
+        }),
+      });
+      if (result.signedIn)
+        window.location.assign(
+          safeNext(new URLSearchParams(window.location.search).get('next')),
+        );
       else {
-        sessionStorage.setItem('scouter_confirmation_email', String(values.get('email')).trim());
+        sessionStorage.setItem(
+          'scouter_confirmation_email',
+          String(values.get('email')).trim(),
+        );
         window.location.assign('/verification');
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Registration failed.');
-      inFlight.current = false; setPending(false);
+      inFlight.current = false;
+      setPending(false);
     }
   }
 
   return (
-    <form className='contents' onSubmit={(event) => { event.preventDefault(); void signUp(event.currentTarget); }}>
+    <form
+      className='contents'
+      onSubmit={(event) => {
+        event.preventDefault();
+        void signUp(event.currentTarget);
+      }}
+    >
       <div className='flex flex-col items-center space-y-2'>
         {/* icon */}
         <div
@@ -105,7 +134,7 @@ export default function PageRegister() {
         </div>
       </div>
 
-
+      <GoogleAuthButton disabled={pending} onPendingChange={setOauthPending} />
 
       <div className='space-y-3'>
         <div className='space-y-1'>
@@ -142,7 +171,7 @@ export default function PageRegister() {
                 autoComplete='email'
                 maxLength={254}
                 type='email'
-                placeholder='hello@alignui.com'
+                placeholder='you@company.com'
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 required
@@ -174,7 +203,11 @@ export default function PageRegister() {
         </div>
       </div>
 
-      {error && <p role='alert' className='text-paragraph-sm text-error-base'>{error}</p>}
+      {error && (
+        <p role='alert' className='text-paragraph-sm text-error-base'>
+          {error}
+        </p>
+      )}
       {message && (
         <p className='text-paragraph-sm text-success-base'>{message}</p>
       )}
@@ -182,7 +215,7 @@ export default function PageRegister() {
       <FancyButton.Root
         variant='primary'
         size='medium'
-        disabled={pending}
+        disabled={pending || oauthPending}
         type='submit'
       >
         {pending ? 'Creating account…' : 'Register'}
