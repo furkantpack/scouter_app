@@ -5,6 +5,22 @@ import { waitUntil } from '@vercel/functions';
 const WORKER_PATH = '/api/internal/engine-worker';
 const DISPATCH_TIMEOUT_MS = 10_000;
 
+export type EngineWorkerDispatchSchedule =
+  | { scheduled: true }
+  | {
+      scheduled: false;
+      reason:
+        | 'cron_secret_missing'
+        | 'worker_url_unavailable'
+        | 'wait_until_registration_failed';
+    };
+
+function dispatchErrorReason(error: unknown) {
+  return error instanceof DOMException && error.name === 'TimeoutError'
+    ? 'request_timeout'
+    : 'request_failed';
+}
+
 function workerUrl(request: Request) {
   const deploymentHost = process.env.VERCEL_URL?.trim();
   if (deploymentHost) {
@@ -42,14 +58,47 @@ async function dispatchEngineWorker(request: Request) {
       cache: 'no-store',
       signal: AbortSignal.timeout(DISPATCH_TIMEOUT_MS),
     });
-    return response.status === 202;
-  } catch {
+    if (response.status !== 202) {
+      console.warn('[engine-dispatch] worker request rejected', {
+        reason: 'unexpected_status',
+        status: response.status,
+      });
+      return false;
+    }
+    console.info('[engine-dispatch] worker request accepted', { status: 202 });
+    return true;
+  } catch (error) {
+    console.warn('[engine-dispatch] worker request failed', {
+      reason: dispatchErrorReason(error),
+    });
     return false;
   }
 }
 
-export function scheduleEngineWorkerDispatch(request: Request) {
-  if (!process.env.CRON_SECRET || !workerUrl(request)) return false;
-  waitUntil(dispatchEngineWorker(request));
-  return true;
+export function scheduleEngineWorkerDispatch(
+  request: Request,
+): EngineWorkerDispatchSchedule {
+  if (!process.env.CRON_SECRET) {
+    console.warn('[engine-dispatch] immediate dispatch skipped', {
+      reason: 'cron_secret_missing',
+    });
+    return { scheduled: false, reason: 'cron_secret_missing' };
+  }
+  if (!workerUrl(request)) {
+    console.warn('[engine-dispatch] immediate dispatch skipped', {
+      reason: 'worker_url_unavailable',
+      vercelUrlConfigured: Boolean(process.env.VERCEL_URL?.trim()),
+      production: process.env.NODE_ENV === 'production',
+    });
+    return { scheduled: false, reason: 'worker_url_unavailable' };
+  }
+  try {
+    waitUntil(dispatchEngineWorker(request));
+    return { scheduled: true };
+  } catch {
+    console.warn('[engine-dispatch] immediate dispatch registration failed', {
+      reason: 'wait_until_registration_failed',
+    });
+    return { scheduled: false, reason: 'wait_until_registration_failed' };
+  }
 }

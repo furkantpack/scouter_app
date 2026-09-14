@@ -137,6 +137,10 @@ export async function POST(request: Request) {
       { onConflict: 'organization_id' },
     );
     dbError(stateResult.error);
+    console.info('[onboarding] persistence succeeded', {
+      sectionKey: body.sectionKey,
+      completed: body.completed,
+    });
     if (body.completed) {
       const websiteQuestion = questions.find(
         (question) => question.question_key === 'portfolio_url',
@@ -151,23 +155,59 @@ export async function POST(request: Request) {
           actionType: 'thesis_generation',
           resourceKey: normalizedWebsite,
         });
+        console.info('[onboarding] throttle acquired', { actionRunId });
+        let queued: Awaited<ReturnType<typeof enqueueThesisEngineJob>>;
         try {
-          const queued = await enqueueThesisEngineJob(admin, {
+          queued = await enqueueThesisEngineJob(admin, {
             organizationId: membership!.organization_id,
             userId: user!.id,
             resourceKey: normalizedWebsite,
             sourceUrl: normalizedWebsite,
             actionRunId,
           });
-          if (queued.reused)
-            await finishProductActionRun(admin, actionRunId, 'completed');
-          else scheduleEngineWorkerDispatch(request);
         } catch (error) {
-          await finishProductActionRun(admin, actionRunId, 'failed');
-          throw error;
+          const finalized = await finishProductActionRun(
+            admin,
+            actionRunId,
+            'failed',
+          );
+          console.error('[onboarding] durable thesis enqueue failed', {
+            actionRunId,
+            actionRunFinalized: finalized,
+          });
+          console.info('[onboarding] response', { status: 503 });
+          throw new ApiError('Thesis generation could not be queued.', 503);
+        }
+        console.info('[onboarding] durable thesis enqueue succeeded', {
+          actionRunId,
+          jobId: queued.job_id,
+          reused: queued.reused,
+          status: queued.status,
+        });
+        if (queued.reused) {
+          const finalized = await finishProductActionRun(
+            admin,
+            actionRunId,
+            'completed',
+          );
+          console.info('[onboarding] reused thesis action finalized', {
+            actionRunId,
+            actionRunFinalized: finalized,
+          });
+        } else {
+          console.info('[onboarding] immediate dispatch attempted', {
+            jobId: queued.job_id,
+          });
+          const dispatch = scheduleEngineWorkerDispatch(request);
+          console.info('[onboarding] immediate dispatch scheduled', {
+            jobId: queued.job_id,
+            scheduled: dispatch.scheduled,
+            ...(!dispatch.scheduled ? { reason: dispatch.reason } : {}),
+          });
         }
       }
     }
+    console.info('[onboarding] response', { status: 200 });
     return { ok: true };
   });
 }

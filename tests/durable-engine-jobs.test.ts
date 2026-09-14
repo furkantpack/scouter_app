@@ -55,16 +55,26 @@ test('new durable jobs schedule an immediate worker request without duplicating 
   ] as const) {
     const queued = route.indexOf(`await ${enqueue}`);
     const reused = route.indexOf('if (queued.reused)', queued);
-    const dispatch = route.indexOf('else scheduleEngineWorkerDispatch(request)', reused);
-    assert.ok(queued >= 0 && reused > queued && dispatch > reused, `${name} dispatch ordering`);
+    const dispatch = route.indexOf(
+      'scheduleEngineWorkerDispatch(request)',
+      reused,
+    );
+    assert.ok(
+      queued >= 0 && reused > queued && dispatch > reused,
+      `${name} dispatch ordering`,
+    );
   }
 
   assert.match(workerDispatch, /waitUntil\(dispatchEngineWorker\(request\)\)/);
   assert.match(workerDispatch, /method: 'POST'/);
   assert.match(workerDispatch, /authorization: `Bearer \$\{secret\}`/);
-  assert.match(workerDispatch, /return response\.status === 202/);
+  assert.match(workerDispatch, /response\.status !== 202/);
+  assert.match(workerDispatch, /return \{ scheduled: true \}/);
   assert.match(workerDispatch, /catch \{[\s\S]*return false/);
-  assert.doesNotMatch(workerDispatch, /NEXT_PUBLIC_[A-Z_]*SECRET|void\s+.*\.then\s*\(/);
+  assert.doesNotMatch(
+    workerDispatch,
+    /NEXT_PUBLIC_[A-Z_]*SECRET|void\s+.*\.then\s*\(/,
+  );
 });
 
 test('enqueue functions serialize resource creation and create run plus job atomically', () => {
