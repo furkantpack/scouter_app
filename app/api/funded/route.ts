@@ -55,6 +55,13 @@ export async function GET(request: Request) {
         patterns: null,
       };
 
+    const thesisSummary = {
+      id: thesis.id,
+      name: thesis.name,
+      sourceUrl: thesis.source_url,
+      updatedAt: thesis.updated_at,
+    };
+
     const dimensionsResult = await supabase
       .from('vc_thesis_dimensions')
       .select('*')
@@ -68,7 +75,7 @@ export async function GET(request: Request) {
     const generationId = generationMeta?.value as string | undefined;
     if (!generationId)
       return {
-        thesis,
+        thesis: thesisSummary,
         companies: [],
         count: 0,
         page,
@@ -176,12 +183,7 @@ export async function GET(request: Request) {
       }));
     const metadata = (generationMeta.metadata || {}) as JsonRecord;
     return {
-      thesis: {
-        id: thesis.id,
-        name: thesis.name,
-        sourceUrl: thesis.source_url,
-        updatedAt: thesis.updated_at,
-      },
+      thesis: thesisSummary,
       companies,
       count: filtered.length,
       totalCount: allCompanies.length,

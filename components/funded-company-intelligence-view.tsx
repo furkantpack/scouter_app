@@ -14,6 +14,7 @@ import {
   RiPulseLine,
 } from '@remixicon/react';
 
+import { safeFormatDate } from '@/lib/funded-intelligence/safe-date';
 import { requestJson } from '@/lib/request-json';
 import { useProductData } from '@/hooks/use-product-data';
 import * as Button from '@/components/ui/button';
@@ -146,12 +147,7 @@ const text = (
       return String(record[key]);
   return fallback;
 };
-const date = (value: string | null) =>
-  value
-    ? new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(
-        new Date(value),
-      )
-    : 'Date not verified';
+const date = (value: string | null) => safeFormatDate(value);
 
 export function FundedCompanyIntelligenceView({ id }: { id: string }) {
   const {

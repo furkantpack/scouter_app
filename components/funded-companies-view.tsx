@@ -8,6 +8,7 @@ import {
   RiExternalLinkLine,
 } from '@remixicon/react';
 
+import { safeFormatDate } from '@/lib/funded-intelligence/safe-date';
 import { useProductData } from '@/hooks/use-product-data';
 
 type Company = {
@@ -30,7 +31,7 @@ type FundedResponse = {
     id: string;
     name: string;
     sourceUrl: string;
-    updatedAt: string;
+    updatedAt: string | null;
   } | null;
   companies: Company[];
   count: number;
@@ -169,10 +170,10 @@ export function FundedCompaniesView() {
           <p>{data.totalCount ?? data.count} portfolio companies</p>
           <p>
             Last analyzed{' '}
-            {new Intl.DateTimeFormat('en', {
+            {safeFormatDate(data.thesis.updatedAt, {
               dateStyle: 'medium',
               timeStyle: 'short',
-            }).format(new Date(data.thesis.updatedAt))}
+            })}
           </p>
         </div>
       </section>
