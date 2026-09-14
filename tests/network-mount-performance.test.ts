@@ -11,10 +11,10 @@ const fundingRoute = readFileSync(
   'utf8',
 );
 
-test('Network mount loads persisted state without opening the provider-backed funding mode', () => {
+test('Network mount opens the first funding tab without an automatic provider request', () => {
   assert.match(
     view,
-    /useState<'company' \| 'funding'>\('company'\)/,
+    /useState<'company' \| 'funding'>\('funding'\)/,
   );
   assert.match(view, /useEffect\(\(\) => \{[\s\S]*?void load\(initialRunId\);[\s\S]*?\}, \[initialRunId\]\);/);
   assert.doesNotMatch(

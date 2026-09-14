@@ -1,12 +1,12 @@
-export type ProgramMetadata = { id: string; name: string; region: string; archetype: string };
+export type ProgramMetadata = { id: string; name: string; region: string; archetype: string; logoDomain?: string };
 
 export const PROGRAMS: ProgramMetadata[] = [
-  { id: 'yc', name: 'Y Combinator', region: 'US / Global', archetype: 'Fast-moving founders building venture-scale companies with small teams that ship and learn quickly.' },
-  { id: 'techstars', name: 'Techstars', region: 'US / Global', archetype: 'Strong teams with commercial execution, domain fit, and mentor or corporate leverage.' },
-  { id: '500_global', name: '500 Global Flagship', region: 'US / Global', archetype: 'Early-stage teams showing product-market learning, growth discipline, and cross-border potential.' },
+  { id: 'yc', name: 'Y Combinator', region: 'US / Global', archetype: 'Fast-moving founders building venture-scale companies with small teams that ship and learn quickly.', logoDomain: 'ycombinator.com' },
+  { id: 'techstars', name: 'Techstars', region: 'US / Global', archetype: 'Strong teams with commercial execution, domain fit, and mentor or corporate leverage.', logoDomain: 'techstars.com' },
+  { id: '500_global', name: '500 Global Flagship', region: 'US / Global', archetype: 'Early-stage teams showing product-market learning, growth discipline, and cross-border potential.', logoDomain: '500.co' },
   { id: 'speedrun', name: 'a16z speedrun', region: 'US / Global', archetype: 'Zero-to-one teams with agency, rapid execution, product-building ability, and market validation.' },
-  { id: 'sequoia_capital', name: 'Sequoia Capital', region: 'US / Europe / Global', archetype: 'Outlier founders with category-defining insight, technical excellence, durable PMF, and global ambition.' },
-  { id: 'sequoia_arc', name: 'Sequoia Arc', region: 'US / Europe / Global', archetype: 'Small cohorts centered on founder quality, customer insight, PMF, team design, and speed.' },
+  { id: 'sequoia_capital', name: 'Sequoia Capital', region: 'US / Europe / Global', archetype: 'Outlier founders with category-defining insight, technical excellence, durable PMF, and global ambition.', logoDomain: 'sequoiacap.com' },
+  { id: 'sequoia_arc', name: 'Sequoia Arc', region: 'US / Europe / Global', archetype: 'Small cohorts centered on founder quality, customer insight, PMF, team design, and speed.', logoDomain: 'sequoiacap.com' },
   { id: 'hf0', name: 'HF0', region: 'US / Global', archetype: 'Ultra-small residency favoring repeat founders or breakout teams with exceptional traction and velocity.' },
   { id: 'spc', name: 'South Park Commons Founder Fellowship', region: 'US / Global', archetype: 'Founder-first program for ambitious technologists with depth, builder ability, and long-horizon ambition.' },
   { id: 'neo', name: 'Neo Residency', region: 'US / Global', archetype: 'Technical talent residency for young builders, student founders, and high-velocity pre-seed teams.' },

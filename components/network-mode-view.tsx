@@ -283,7 +283,7 @@ export function NetworkModeView({ initialRunId }: { initialRunId?: string }) {
   const [error, setError] = useState('');
   const [selectionError, setSelectionError] = useState('');
   const [selected, setSelected] = useState<Candidate | null>(null);
-  const [entryMode, setEntryMode] = useState<'company' | 'funding'>('company');
+  const [entryMode, setEntryMode] = useState<'company' | 'funding'>('funding');
   const [funding, setFunding] = useState<FundingResponse | null>(null);
   const [fundingLoading, setFundingLoading] = useState(false);
   const [fundingError, setFundingError] = useState('');
