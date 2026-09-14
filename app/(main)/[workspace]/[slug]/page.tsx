@@ -1,7 +1,5 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-
-import { legacyDemoRoutesEnabled } from '@/lib/legacy-demo-routes';
 import {
   RiArrowLeftLine,
   RiArrowRightLine,
@@ -9,6 +7,8 @@ import {
   RiFlashlightLine,
   RiUserStarLine,
 } from '@remixicon/react';
+
+import { legacyDemoRoutesEnabled } from '@/lib/legacy-demo-routes';
 
 import { networkLogoUrl } from '../../products/network-data';
 
@@ -390,10 +390,7 @@ export default function PortfolioCompanyPage({
 }) {
   if (!legacyDemoRoutesEnabled()) notFound();
 
-  if (
-    decodeURIComponent(params.workspace).toLocaleLowerCase('tr-TR') !==
-    'portföy'
-  )
+  if (decodeURIComponent(params.workspace).toLowerCase() !== 'portfolio')
     notFound();
   const company = portfolio[params.slug as keyof typeof portfolio];
   if (!company) notFound();
@@ -405,7 +402,7 @@ export default function PortfolioCompanyPage({
         <section className='border-b border-stroke-soft-200 py-7 pt-10'>
           <div className='mb-7'>
             <Link
-              href='/portföy'
+              href='/portfolio'
               className='inline-flex items-center gap-2 text-label-sm text-text-sub-600 hover:text-text-strong-950'
             >
               <RiArrowLeftLine className='size-4' /> Back to portfolio

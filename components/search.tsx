@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import {
   RiArrowDownLine,
   RiArrowUpLine,
-  RiBriefcase4Line,
   RiCloseLine,
   RiCornerDownLeftLine,
   RiLayoutGridLine,
@@ -131,7 +130,7 @@ export function SearchMenu() {
             <CommandMenu.ItemIcon as={RiSparklingLine} />
             Discover founders matching your investment focus
           </CommandMenu.Item>
-          <CommandMenu.Item onSelect={() => navigate('/portf%C3%B6y')}>
+          <CommandMenu.Item onSelect={() => navigate('/portfolio')}>
             <CommandMenu.ItemIcon as={RiSparklingLine} />
             Review your strongest portfolio signals
           </CommandMenu.Item>
@@ -159,10 +158,6 @@ export function SearchMenu() {
           <CommandMenu.Item onSelect={() => navigate('/all-founders')}>
             <CommandMenu.ItemIcon as={RiRocket2Line} />
             Browse top founders
-          </CommandMenu.Item>
-          <CommandMenu.Item onSelect={() => navigate('/funded')}>
-            <CommandMenu.ItemIcon as={RiBriefcase4Line} />
-            Review funded companies
           </CommandMenu.Item>
           <CommandMenu.Item onSelect={() => navigate('/network')}>
             <CommandMenu.ItemIcon as={RiLinksLine} />

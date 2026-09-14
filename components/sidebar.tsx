@@ -6,15 +6,14 @@ import { usePathname } from 'next/navigation';
 import {
   RiArrowDownSLine,
   RiArrowRightSLine,
-  RiBriefcase4Line,
   RiHeadphoneLine,
   RiHistoryLine,
   RiLayoutGridLine,
   RiLinksLine,
-  RiSparkling2Line,
   RiRocket2Line,
   RiSettings2Line,
   RiShoppingBag2Line,
+  RiSparkling2Line,
 } from '@remixicon/react';
 import { useSetAtom } from 'jotai';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -36,8 +35,7 @@ type NavigationLink = {
 
 export const navigationLinks: NavigationLink[] = [
   { icon: RiLayoutGridLine, label: 'Dashboard', href: '/dashboard' },
-  { icon: RiShoppingBag2Line, label: 'Portfolio', href: '/portföy' },
-  { icon: RiBriefcase4Line, label: 'Funded', href: '/funded' },
+  { icon: RiShoppingBag2Line, label: 'Portfolio', href: '/portfolio' },
   { icon: RiHistoryLine, label: 'Monitor', href: '/monitor' },
   { icon: RiLayoutGridLine, label: 'Lists', href: '/lists' },
   { icon: RiSparkling2Line, label: 'Program Fit', href: '/programs' },

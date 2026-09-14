@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   RiArrowRightUpLongLine,
@@ -17,8 +17,8 @@ import {
 } from '@remixicon/react';
 
 import { useProductData } from '@/hooks/use-product-data';
-import * as Modal from '@/components/ui/modal';
 import { DashedDivider } from '@/components/dashed-divider';
+import { FounderPreviewDrawer } from '@/components/founder-preview-drawer';
 import Header from '@/components/header';
 
 import { networkLogoUrl, networkProfiles } from './network-data';
@@ -33,7 +33,28 @@ type FundedCompany = {
   geography: string | null;
   investmentTiming: string | null;
   sourceUrl: string | null;
-  founders: string[];
+  canonicalCompanyId: string | null;
+  companyResolutionStatus: 'resolved' | 'unresolved';
+  founderCount: number | null;
+  founders: Array<{
+    id: string;
+    name: string;
+    role: string | null;
+    scouterScore: number | null;
+  }>;
+  relatedFounderCount: number;
+  relatedFounderClassification: 'related_founder' | 'fund_thesis_match' | null;
+  relatedFounders: Array<{
+    id: string;
+    name: string;
+    companyName: string | null;
+    role: string | null;
+    scouterScore: number | null;
+    relatedMatchScore: number;
+    classification: 'related_founder' | 'fund_thesis_match';
+    companyEvidenceWeight: number;
+    whyMatched: string[];
+  }>;
   founderPattern: string | null;
   thesisMatch: string[];
   whyFit: string | null;
@@ -62,6 +83,16 @@ type ThesisDimension = {
 };
 
 type ThesisResponse = {
+  status:
+    'not_started' | 'queued' | 'crawling' | 'analyzing' | 'ready' | 'failed';
+  processingError?: string | null;
+  thesis: {
+    id: string;
+    name: string;
+    source_url: string;
+    status: string;
+    updated_at: string;
+  } | null;
   summary: {
     fund_summary?: { thesis_summary?: string };
     stated_thesis?: { summary?: string };
@@ -609,12 +640,12 @@ const networkTabs = [
 const portfolioTabs = [
   { id: 'Companies', label: 'Companies', icon: RiBuildingLine, count: 10 },
   {
-    id: 'Thesis Matches',
-    label: 'Thesis Matches',
+    id: 'Thesis',
+    label: 'Thesis',
     icon: RiUserStarLine,
     count: 187,
   },
-  { id: 'Signals', label: 'Signals', icon: RiRocket2Line, count: 34 },
+  { id: 'Patterns', label: 'Patterns', icon: RiRocket2Line, count: 34 },
 ] as const;
 
 const portfolioSummary = [
@@ -701,13 +732,26 @@ const tabContent = {
 export function PageProducts({ portfolio = false }: { portfolio?: boolean }) {
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<string>('Companies');
-  const [thesisOpen, setThesisOpen] = useState(false);
+  const [selectedFounder, setSelectedFounder] = useState<string | null>(null);
   const funded = useProductData<FundedResponse>(
     portfolio ? '/api/funded?page=0&pageSize=100' : null,
   );
   const thesis = useProductData<ThesisResponse>(
     portfolio ? '/api/thesis' : null,
   );
+  const portfolioBuilding =
+    portfolio &&
+    ['queued', 'crawling', 'analyzing'].includes(thesis.data?.status || '');
+  const reloadThesis = thesis.reload;
+  const reloadFunded = funded.reload;
+
+  useEffect(() => {
+    if (!portfolioBuilding) return;
+    const timer = setInterval(() => {
+      void Promise.all([reloadThesis(), reloadFunded()]);
+    }, 4_000);
+    return () => clearInterval(timer);
+  }, [portfolioBuilding, reloadFunded, reloadThesis]);
 
   const livePortfolioCompanies = useMemo(
     () =>
@@ -737,11 +781,21 @@ export function PageProducts({ portfolio = false }: { portfolio?: boolean }) {
           logoDomain: domainFromUrl(company.companyUrl),
           roles: roles.length ? roles : ['No structured thesis match yet'],
           openRoles: company.thesisMatch.length,
-          reward: String(company.founders.length),
+          reward: company.founderCount
+            ? String(company.founderCount)
+            : company.relatedFounderCount
+              ? String(company.relatedFounderCount)
+              : company.companyResolutionStatus === 'resolved'
+                ? '0'
+                : '—',
           network: company.stage || '—',
           accent,
           soft,
           href: `/funded/${company.id}`,
+          founders: company.founders,
+          relatedFounders: company.relatedFounders,
+          relatedFounderClassification: company.relatedFounderClassification,
+          companyResolutionStatus: company.companyResolutionStatus,
           rationale: {
             basis:
               basis || company.description || 'Persisted portfolio evidence',
@@ -753,9 +807,11 @@ export function PageProducts({ portfolio = false }: { portfolio?: boolean }) {
   );
 
   const thesisSummary =
-    thesis.data?.summary?.fund_summary?.thesis_summary ||
-    thesis.data?.summary?.stated_thesis?.summary ||
-    thesis.data?.summary?.observed_thesis?.summary ||
+    (portfolioBuilding
+      ? 'Building your Portfolio Intelligence…'
+      : thesis.data?.summary?.fund_summary?.thesis_summary ||
+        thesis.data?.summary?.stated_thesis?.summary ||
+        thesis.data?.summary?.observed_thesis?.summary) ||
     'Your thesis summary will appear here once the current thesis is generated.';
   const thesisDimensions = thesis.data?.dimensions || [];
   const allPatterns = funded.data?.patterns;
@@ -777,23 +833,31 @@ export function PageProducts({ portfolio = false }: { portfolio?: boolean }) {
   const livePortfolioSummary = [
     {
       label: 'Portfolio companies',
-      value: String(funded.data?.totalCount ?? '—'),
-      caption: 'From funded-company intelligence',
+      value: portfolioBuilding ? '—' : String(funded.data?.totalCount ?? '—'),
+      caption: portfolioBuilding
+        ? 'Analysis queued or running'
+        : 'From persisted portfolio intelligence',
     },
     {
       label: 'Thesis matches',
-      value: String(thesisMatchCount),
-      caption: 'Across current investments',
+      value: portfolioBuilding ? '—' : String(thesisMatchCount),
+      caption: portfolioBuilding
+        ? 'Waiting for persisted evidence'
+        : 'Across current investments',
     },
     {
       label: 'Portfolio patterns',
-      value: String(signalCount),
-      caption: 'Deterministic thesis signals',
+      value: portfolioBuilding ? '—' : String(signalCount),
+      caption: portfolioBuilding
+        ? 'Analysis in progress'
+        : 'Deterministic thesis signals',
     },
     {
       label: 'Thesis dimensions',
-      value: String(thesisDimensions.length),
-      caption: 'In the current Thesis DNA',
+      value: portfolioBuilding ? '—' : String(thesisDimensions.length),
+      caption: portfolioBuilding
+        ? 'Building Thesis DNA'
+        : 'In the current Thesis DNA',
     },
   ];
 
@@ -811,10 +875,16 @@ export function PageProducts({ portfolio = false }: { portfolio?: boolean }) {
         ...tab,
         count:
           tab.id === 'Companies'
-            ? funded.data?.totalCount || 0
-            : tab.id === 'Thesis Matches'
-              ? thesisMatchCount
-              : signalCount,
+            ? portfolioBuilding
+              ? '…'
+              : funded.data?.totalCount || 0
+            : tab.id === 'Thesis'
+              ? portfolioBuilding
+                ? '…'
+                : thesisDimensions.length
+              : portfolioBuilding
+                ? '…'
+                : signalCount,
       }))
     : networkTabs;
   const activeContent = portfolio
@@ -854,6 +924,35 @@ export function PageProducts({ portfolio = false }: { portfolio?: boolean }) {
 
       <div className='px-4 pb-10 lg:px-8'>
         <DashedDivider />
+
+        {portfolioBuilding && (
+          <section
+            role='status'
+            className='mt-5 rounded-2xl border border-stroke-soft-200 bg-bg-weak-50 p-5'
+          >
+            <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+              <div>
+                <p className='text-label-md text-text-strong-950'>
+                  Building your Portfolio Intelligence…
+                </p>
+                <p className='mt-1 text-paragraph-sm text-text-sub-600'>
+                  Analysis {thesis.data?.status}. Persisted results will appear
+                  automatically.
+                </p>
+              </div>
+              {thesis.data?.thesis?.source_url && (
+                <a
+                  href={thesis.data.thesis.source_url}
+                  target='_blank'
+                  rel='noreferrer'
+                  className='truncate text-label-sm text-primary-base'
+                >
+                  {thesis.data.thesis.source_url}
+                </a>
+              )}
+            </div>
+          </section>
+        )}
 
         <div className='border-b border-stroke-soft-200 py-5'>
           <div
@@ -919,35 +1018,97 @@ export function PageProducts({ portfolio = false }: { portfolio?: boolean }) {
           ))}
         </section>
 
-        {portfolio && (
+        {portfolio && activeTab === 'Thesis' && (
           <section className='border-b border-stroke-soft-200 py-6'>
-            <div className='relative overflow-hidden rounded-3xl bg-bg-white-0 p-6 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 lg:p-8'>
-              <span className='pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-violet-50 to-transparent' />
-              <div className='relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between'>
-                <div className='max-w-3xl'>
-                  <div className='mb-3 flex items-center gap-2 text-label-xs font-medium text-violet-600'>
-                    <RiUserStarLine className='size-4' />
-                    Investment Thesis
-                  </div>
-                  <h2 className='text-title-h5 font-medium text-text-strong-950'>
-                    Thesis summary
-                  </h2>
-                  <p className='mt-3 text-label-sm leading-6 text-text-sub-600'>
-                    {thesisSummary}
-                  </p>
-                </div>
-                <button
-                  type='button'
-                  onClick={() => setThesisOpen(true)}
-                  className='inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-text-strong-950 px-4 text-label-sm font-medium text-bg-white-0 transition hover:opacity-90'
-                >
-                  Detail
-                  <RiArrowRightUpLongLine className='size-4' />
-                </button>
+            <div className='mb-5 rounded-2xl bg-bg-white-0 p-5 ring-1 ring-inset ring-stroke-soft-200'>
+              <div className='mb-2 flex items-center gap-2 text-label-xs font-medium text-violet-600'>
+                <RiUserStarLine className='size-4' />
+                Investment Thesis
               </div>
+              <h2 className='text-title-h5 font-medium text-text-strong-950'>
+                Thesis summary
+              </h2>
+              <p className='mt-3 text-label-sm leading-6 text-text-sub-600'>
+                {thesisSummary}
+              </p>
             </div>
+            <div className='mb-4'>
+              <h2 className='text-label-lg text-text-strong-950'>Thesis DNA</h2>
+              <p className='mt-1 text-label-sm text-text-soft-400'>
+                The current structured thesis behind portfolio patterns and
+                matching.
+              </p>
+            </div>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+              {thesisGroups.map(({ key, label, icon: Icon, accent, soft }) => {
+                const dimensions = thesisDimensions
+                  .filter((dimension) => dimension.dimension_type === key)
+                  .sort((left, right) => right.weight - left.weight);
 
-            <div className='mt-5'>
+                return (
+                  <article
+                    key={key}
+                    className='relative min-h-64 overflow-hidden rounded-3xl bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'
+                  >
+                    <span
+                      className='pointer-events-none absolute inset-x-0 top-0 h-20 opacity-80'
+                      style={{
+                        background: `linear-gradient(180deg, ${soft} 0%, rgba(255,255,255,0) 100%)`,
+                      }}
+                    />
+                    <div className='relative flex items-center gap-2.5 border-b border-stroke-soft-200 pb-4'>
+                      <span
+                        className='flex size-9 items-center justify-center rounded-xl'
+                        style={{ backgroundColor: soft, color: accent }}
+                      >
+                        <Icon className='size-[18px]' />
+                      </span>
+                      <h3 className='text-label-md font-medium text-text-strong-950'>
+                        {label}
+                      </h3>
+                    </div>
+                    <div className='relative mt-4 space-y-4'>
+                      {dimensions.length ? (
+                        dimensions.map((dimension) => {
+                          const percent = dimensionPercent(dimension.weight);
+                          return (
+                            <div key={dimension.id}>
+                              <div className='mb-2 flex items-center justify-between gap-3 text-label-sm'>
+                                <span className='truncate text-text-sub-600'>
+                                  {dimension.value}
+                                </span>
+                                <span className='shrink-0 font-medium text-text-strong-950'>
+                                  {percent}%
+                                </span>
+                              </div>
+                              <div className='h-1.5 overflow-hidden rounded-full bg-bg-weak-50'>
+                                <div
+                                  className='h-full rounded-full'
+                                  style={{
+                                    width: `${percent}%`,
+                                    backgroundColor: accent,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <p className='text-label-sm text-text-soft-400'>
+                          No confirmed dimensions.
+                        </p>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {portfolio && activeTab === 'Patterns' && (
+          <section className='border-b border-stroke-soft-200 py-6'>
+            <div>
               <div className='mb-4'>
                 <h2 className='text-label-lg text-text-strong-950'>
                   Portfolio Patterns
@@ -1036,282 +1197,286 @@ export function PageProducts({ portfolio = false }: { portfolio?: boolean }) {
           </section>
         )}
 
-        <div className='flex flex-col gap-4 py-6 lg:flex-row lg:items-center lg:justify-between'>
-          <div>
-            <h2 className='text-label-lg text-text-strong-950'>
-              {activeContent.title}
-            </h2>
-            <p className='mt-1 text-label-sm text-text-soft-400'>
-              {activeContent.description}
-            </p>
-          </div>
-          <label className='flex h-10 w-full items-center gap-2 rounded-10 bg-bg-white-0 px-3 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 lg:w-72'>
-            <RiSearchLine className='size-5 text-text-soft-400' />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              className='min-w-0 flex-1 bg-transparent text-label-sm text-text-strong-950 outline-none placeholder:text-text-soft-400'
-              placeholder={activeContent.search}
-            />
-          </label>
-        </div>
-
-        <section className='grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3'>
-          {visibleCompanies.map((company) => (
-            <Link
-              key={company.slug}
-              href={
-                'href' in company ? company.href : `/products/${company.slug}`
-              }
-              className='group relative flex min-h-[310px] flex-col overflow-hidden rounded-3xl bg-bg-white-0 p-6 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 transition duration-200 hover:-translate-y-0.5 hover:shadow-regular-md'
-            >
-              <span
-                className='pointer-events-none absolute inset-x-0 top-0 h-24 opacity-80'
-                style={{
-                  background: `linear-gradient(180deg, ${company.soft} 0%, rgba(255,255,255,0) 100%)`,
-                }}
+        {(!portfolio || activeTab === 'Companies') && (
+          <div className='flex flex-col gap-4 py-6 lg:flex-row lg:items-center lg:justify-between'>
+            <div>
+              <h2 className='text-label-lg text-text-strong-950'>
+                {activeContent.title}
+              </h2>
+              <p className='mt-1 text-label-sm text-text-soft-400'>
+                {activeContent.description}
+              </p>
+            </div>
+            <label className='flex h-10 w-full items-center gap-2 rounded-10 bg-bg-white-0 px-3 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 lg:w-72'>
+              <RiSearchLine className='size-5 text-text-soft-400' />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                className='min-w-0 flex-1 bg-transparent text-label-sm text-text-strong-950 outline-none placeholder:text-text-soft-400'
+                placeholder={activeContent.search}
               />
-              <div className='flex items-start justify-between'>
-                <div className='flex items-center gap-3'>
-                  <span
-                    className='relative flex size-12 items-center justify-center rounded-14 text-label-lg ring-1 ring-inset'
-                    style={{
-                      backgroundColor: company.soft,
-                      color: company.accent,
-                      boxShadow: `inset 0 0 0 1px ${company.accent}24`,
-                    }}
-                  >
-                    <img
-                      src={networkLogoUrl(
-                        'logoDomain' in company
-                          ? company.logoDomain || company.name
-                          : networkProfiles[company.slug].logoDomain,
-                      )}
-                      alt={`${company.name} logo`}
-                      className='size-7 rounded-md object-contain'
-                    />
-                  </span>
-                  <div className='relative'>
-                    <h3 className='text-label-lg text-text-strong-950'>
-                      {company.name}
-                    </h3>
-                    <p className='mt-1 text-label-sm text-text-soft-400'>
-                      {company.focus}
-                    </p>
-                  </div>
-                </div>
-                <RiArrowRightUpLongLine
-                  className='relative size-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5'
-                  style={{ color: company.accent }}
-                />
-              </div>
-
-              <div className='relative mt-6 flex-1 border-y border-stroke-soft-200 py-4'>
-                {portfolio && (
-                  <div className='mb-4 rounded-xl bg-bg-weak-50 p-3'>
-                    <div className='text-label-xs font-medium text-orange-600'>
-                      Based on this investment
-                    </div>
-                    <p className='mt-1 text-label-xs leading-5 text-text-sub-600'>
-                      {'rationale' in company
-                        ? company.rationale.basis
-                        : portfolioRationale[company.slug].basis}
-                    </p>
-                  </div>
-                )}
-                <div
-                  className='mb-3 flex items-center gap-2 text-label-xs'
-                  style={{ color: company.accent }}
-                >
-                  <RiBriefcase4Line className='size-4' />
-                  {portfolio
-                    ? 'Why these matches'
-                    : activeContent.featuredLabel}
-                </div>
-                {portfolio && (
-                  <div className='mb-2 text-label-xs font-medium text-text-soft-400'>
-                    {activeContent.featuredLabel}
-                  </div>
-                )}
-                <div className='divide-y divide-stroke-soft-200'>
-                  {company.roles.map((role, roleIndex) => (
-                    <div
-                      key={role}
-                      className={`flex min-h-10 justify-center gap-1 py-2 text-label-sm text-text-sub-600 ${portfolio ? 'flex-col' : 'items-center justify-between'}`}
-                    >
-                      <span>
-                        {portfolio ? '· ' : ''}
-                        {role}
-                      </span>
-                      {portfolio && (
-                        <span className='pl-3 text-label-xs text-text-soft-400'>
-                          → Matches:{' '}
-                          {'rationale' in company
-                            ? company.rationale.reasons[roleIndex] ||
-                              'persisted thesis signal'
-                            : portfolioRationale[company.slug].reasons[
-                                roleIndex
-                              ]}
-                        </span>
-                      )}
-                      {!portfolio && (
-                        <span
-                          className='size-1.5 shrink-0 rounded-full'
-                          style={{ backgroundColor: company.accent }}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className='mt-5 grid grid-cols-3 divide-x divide-stroke-soft-200'>
-                <div className='pr-3'>
-                  <RiBriefcase4Line
-                    className='mb-2 size-4'
-                    style={{ color: company.accent }}
-                  />
-                  <strong className='block text-label-md text-text-strong-950'>
-                    {company.openRoles}
-                  </strong>
-                  <span className='text-label-xs text-text-soft-400'>
-                    {activeContent.metricLabels[0]}
-                  </span>
-                </div>
-                <div className='px-3'>
-                  <RiMoneyDollarCircleLine
-                    className='mb-2 size-4'
-                    style={{ color: company.accent }}
-                  />
-                  <strong
-                    className='block text-label-md'
-                    style={{ color: company.accent }}
-                  >
-                    {company.reward}
-                  </strong>
-                  <span className='text-label-xs text-text-soft-400'>
-                    {activeContent.metricLabels[1]}
-                  </span>
-                </div>
-                <div className='pl-3'>
-                  <RiTeamLine
-                    className='mb-2 size-4'
-                    style={{ color: company.accent }}
-                  />
-                  <strong className='block text-label-md text-text-strong-950'>
-                    {company.network}
-                  </strong>
-                  <span className='text-label-xs text-text-soft-400'>
-                    {activeContent.metricLabels[2]}
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </section>
-
-        {visibleCompanies.length === 0 && (
-          <div className='py-20 text-center text-label-sm text-text-soft-400'>
-            {portfolio
-              ? query
-                ? 'No portfolio companies or roles match your search.'
-                : funded.loading
-                  ? 'Loading portfolio intelligence…'
-                  : funded.error ||
-                    'No portfolio companies yet. Add your first investment — Scouter will use it to start matching profiles and surfacing signals.'
-              : 'No companies or positions match your search.'}
+            </label>
           </div>
         )}
-      </div>
 
-      {portfolio && (
-        <Modal.Root open={thesisOpen} onOpenChange={setThesisOpen}>
-          <Modal.Content className='max-h-[92vh] max-w-[1120px] overflow-hidden'>
-            <Modal.Header
-              icon={RiUserStarLine}
-              title='Thesis DNA'
-              description='The current structured thesis behind portfolio patterns and matching.'
-            />
-            <Modal.Body className='max-h-[calc(92vh-73px)] overflow-y-auto bg-bg-weak-50/50 p-5 lg:p-6'>
-              <div className='mb-5 rounded-2xl bg-bg-white-0 p-5 ring-1 ring-inset ring-stroke-soft-200'>
-                <div className='text-label-xs font-medium text-violet-600'>
-                  Thesis summary
+        {(!portfolio || activeTab === 'Companies') && (
+          <section className='grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3'>
+            {visibleCompanies.map((company) => (
+              <article
+                key={company.slug}
+                className='group relative flex min-h-[310px] flex-col overflow-hidden rounded-3xl bg-bg-white-0 p-6 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 transition duration-200 hover:-translate-y-0.5 hover:shadow-regular-md'
+              >
+                {!portfolio && (
+                  <Link
+                    href={`/products/${company.slug}`}
+                    aria-label={`Open ${company.name}`}
+                    className='absolute inset-0 z-10'
+                  />
+                )}
+                <span
+                  className='pointer-events-none absolute inset-x-0 top-0 h-24 opacity-80'
+                  style={{
+                    background: `linear-gradient(180deg, ${company.soft} 0%, rgba(255,255,255,0) 100%)`,
+                  }}
+                />
+                <div className='flex items-start justify-between'>
+                  <div className='flex items-center gap-3'>
+                    <span
+                      className='relative flex size-12 items-center justify-center rounded-14 text-label-lg ring-1 ring-inset'
+                      style={{
+                        backgroundColor: company.soft,
+                        color: company.accent,
+                        boxShadow: `inset 0 0 0 1px ${company.accent}24`,
+                      }}
+                    >
+                      <img
+                        src={networkLogoUrl(
+                          'logoDomain' in company
+                            ? company.logoDomain || company.name
+                            : networkProfiles[company.slug].logoDomain,
+                        )}
+                        alt={`${company.name} logo`}
+                        className='size-7 rounded-md object-contain'
+                      />
+                    </span>
+                    <div className='relative'>
+                      <h3 className='text-label-lg text-text-strong-950'>
+                        {company.name}
+                      </h3>
+                      <p className='mt-1 text-label-sm text-text-soft-400'>
+                        {company.focus}
+                      </p>
+                    </div>
+                  </div>
+                  <RiArrowRightUpLongLine
+                    className='relative size-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5'
+                    style={{ color: company.accent }}
+                  />
                 </div>
-                <p className='mt-2 text-label-sm leading-6 text-text-sub-600'>
-                  {thesisSummary}
-                </p>
-              </div>
-              <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                {thesisGroups.map(
-                  ({ key, label, icon: Icon, accent, soft }) => {
-                    const dimensions = thesisDimensions
-                      .filter((dimension) => dimension.dimension_type === key)
-                      .sort((left, right) => right.weight - left.weight);
 
-                    return (
-                      <section
-                        key={key}
-                        className='relative min-h-64 overflow-hidden rounded-3xl bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'
+                <div className='relative mt-6 flex-1 border-y border-stroke-soft-200 py-4'>
+                  {portfolio && (
+                    <div className='mb-4 rounded-xl bg-bg-weak-50 p-3'>
+                      <div className='text-label-xs font-medium text-orange-600'>
+                        Based on this investment
+                      </div>
+                      <p className='mt-1 text-label-xs leading-5 text-text-sub-600'>
+                        {'rationale' in company
+                          ? company.rationale.basis
+                          : portfolioRationale[company.slug].basis}
+                      </p>
+                    </div>
+                  )}
+                  <div
+                    className='mb-3 flex items-center gap-2 text-label-xs'
+                    style={{ color: company.accent }}
+                  >
+                    <RiBriefcase4Line className='size-4' />
+                    {portfolio
+                      ? 'Why these matches'
+                      : activeContent.featuredLabel}
+                  </div>
+                  {portfolio && (
+                    <div className='mb-2 text-label-xs font-medium text-text-soft-400'>
+                      {activeContent.featuredLabel}
+                    </div>
+                  )}
+                  <div className='divide-y divide-stroke-soft-200'>
+                    {company.roles.map((role, roleIndex) => (
+                      <div
+                        key={role}
+                        className={`flex min-h-10 justify-center gap-1 py-2 text-label-sm text-text-sub-600 ${portfolio ? 'flex-col' : 'items-center justify-between'}`}
                       >
-                        <span
-                          className='pointer-events-none absolute inset-x-0 top-0 h-20 opacity-80'
-                          style={{
-                            background: `linear-gradient(180deg, ${soft} 0%, rgba(255,255,255,0) 100%)`,
-                          }}
-                        />
-                        <div className='relative flex items-center gap-2.5 border-b border-stroke-soft-200 pb-4'>
-                          <span
-                            className='flex size-9 items-center justify-center rounded-xl'
-                            style={{ backgroundColor: soft, color: accent }}
-                          >
-                            <Icon className='size-[18px]' />
+                        <span>
+                          {portfolio ? '· ' : ''}
+                          {role}
+                        </span>
+                        {portfolio && (
+                          <span className='pl-3 text-label-xs text-text-soft-400'>
+                            → Matches:{' '}
+                            {'rationale' in company
+                              ? company.rationale.reasons[roleIndex] ||
+                                'persisted thesis signal'
+                              : portfolioRationale[company.slug].reasons[
+                                  roleIndex
+                                ]}
                           </span>
-                          <h3 className='text-label-md font-medium text-text-strong-950'>
-                            {label}
-                          </h3>
-                        </div>
-                        <div className='relative mt-4 space-y-4'>
-                          {dimensions.length ? (
-                            dimensions.map((dimension) => {
-                              const percent = dimensionPercent(
-                                dimension.weight,
-                              );
-                              return (
-                                <div key={dimension.id}>
-                                  <div className='mb-2 flex items-center justify-between gap-3 text-label-sm'>
-                                    <span className='truncate text-text-sub-600'>
-                                      {dimension.value}
+                        )}
+                        {!portfolio && (
+                          <span
+                            className='size-1.5 shrink-0 rounded-full'
+                            style={{ backgroundColor: company.accent }}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {portfolio && 'founders' in company && (
+                    <div className='relative z-20 mt-4 border-t border-stroke-soft-200 pt-3'>
+                      {company.founders.length > 0 ? (
+                        <>
+                          <div className='mb-2 text-label-xs font-medium text-text-soft-400'>
+                            Exact founders · {company.founders.length}
+                          </div>
+                          <div className='flex flex-wrap gap-2'>
+                            {company.founders.map((founder) => (
+                              <button
+                                key={founder.id}
+                                type='button'
+                                onClick={() => setSelectedFounder(founder.id)}
+                                className='rounded-lg bg-bg-weak-50 px-2.5 py-2 text-left ring-1 ring-inset ring-stroke-soft-200 transition hover:bg-bg-white-0'
+                              >
+                                <span className='block text-label-xs font-medium text-text-strong-950'>
+                                  {founder.name}
+                                </span>
+                                <span className='mt-0.5 block text-label-xs text-text-soft-400'>
+                                  {founder.role || 'Founder'}
+                                  {founder.scouterScore != null
+                                    ? ` · Scouter ${founder.scouterScore}`
+                                    : ''}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className='text-label-xs text-text-soft-400'>
+                            Exact founders ·{' '}
+                            {company.companyResolutionStatus === 'resolved'
+                              ? '0'
+                              : '—'}
+                          </div>
+                          <div className='mb-2 mt-3 text-label-xs font-medium text-text-soft-400'>
+                            {company.relatedFounderClassification ===
+                            'fund_thesis_match'
+                              ? 'Fund thesis matches'
+                              : 'Related founders'}{' '}
+                            · {company.relatedFounders.length}
+                          </div>
+                          {company.relatedFounders.length > 0 ? (
+                            <div className='space-y-2'>
+                              {company.relatedFounders.map((founder) => (
+                                <button
+                                  key={founder.id}
+                                  type='button'
+                                  onClick={() => setSelectedFounder(founder.id)}
+                                  className='block w-full rounded-lg bg-bg-weak-50 px-2.5 py-2 text-left ring-1 ring-inset ring-stroke-soft-200 transition hover:bg-bg-white-0'
+                                >
+                                  <span className='flex items-center justify-between gap-2 text-label-xs font-medium text-text-strong-950'>
+                                    <span className='truncate'>
+                                      {founder.name}
                                     </span>
-                                    <span className='shrink-0 font-medium text-text-strong-950'>
-                                      {percent}%
+                                    <span className='shrink-0 text-primary-base'>
+                                      {founder.relatedMatchScore}% match
                                     </span>
-                                  </div>
-                                  <div className='h-1.5 overflow-hidden rounded-full bg-bg-weak-50'>
-                                    <div
-                                      className='h-full rounded-full'
-                                      style={{
-                                        width: `${percent}%`,
-                                        backgroundColor: accent,
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-                              );
-                            })
+                                  </span>
+                                  <span className='mt-1 block text-label-xs text-text-soft-400'>
+                                    {founder.whyMatched.join(' · ')}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
                           ) : (
-                            <p className='text-label-sm text-text-soft-400'>
-                              No confirmed dimensions.
+                            <p className='text-label-xs text-text-soft-400'>
+                              No related founder clears the match threshold.
                             </p>
                           )}
-                        </div>
-                      </section>
-                    );
-                  },
-                )}
-              </div>
-            </Modal.Body>
-          </Modal.Content>
-        </Modal.Root>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className='mt-5 grid grid-cols-3 divide-x divide-stroke-soft-200'>
+                  <div className='pr-3'>
+                    <RiBriefcase4Line
+                      className='mb-2 size-4'
+                      style={{ color: company.accent }}
+                    />
+                    <strong className='block text-label-md text-text-strong-950'>
+                      {company.openRoles}
+                    </strong>
+                    <span className='text-label-xs text-text-soft-400'>
+                      {activeContent.metricLabels[0]}
+                    </span>
+                  </div>
+                  <div className='px-3'>
+                    <RiMoneyDollarCircleLine
+                      className='mb-2 size-4'
+                      style={{ color: company.accent }}
+                    />
+                    <strong
+                      className='block text-label-md'
+                      style={{ color: company.accent }}
+                    >
+                      {company.reward}
+                    </strong>
+                    <span className='text-label-xs text-text-soft-400'>
+                      {activeContent.metricLabels[1]}
+                    </span>
+                  </div>
+                  <div className='pl-3'>
+                    <RiTeamLine
+                      className='mb-2 size-4'
+                      style={{ color: company.accent }}
+                    />
+                    <strong className='block text-label-md text-text-strong-950'>
+                      {company.network}
+                    </strong>
+                    <span className='text-label-xs text-text-soft-400'>
+                      {activeContent.metricLabels[2]}
+                    </span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </section>
+        )}
+
+        {(!portfolio || activeTab === 'Companies') &&
+          visibleCompanies.length === 0 && (
+            <div className='py-20 text-center text-label-sm text-text-soft-400'>
+              {portfolio
+                ? query
+                  ? 'No portfolio companies or roles match your search.'
+                  : funded.loading
+                    ? 'Loading portfolio intelligence…'
+                    : portfolioBuilding
+                      ? 'Building your Portfolio Intelligence…'
+                      : funded.error ||
+                        'No portfolio companies yet. Add your first investment — Scouter will use it to start matching profiles and surfacing signals.'
+                : 'No companies or positions match your search.'}
+            </div>
+          )}
+      </div>
+
+      {selectedFounder && (
+        <FounderPreviewDrawer
+          key={selectedFounder}
+          id={selectedFounder}
+          onClose={() => setSelectedFounder(null)}
+        />
       )}
     </>
   );

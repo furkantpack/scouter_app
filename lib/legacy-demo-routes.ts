@@ -1,7 +1,4 @@
-const DEVELOPMENT_ONLY_ROUTE_ROOTS = [
-  '/exit-companies',
-  '/pages',
-];
+const DEVELOPMENT_ONLY_ROUTE_ROOTS = ['/exit-companies', '/pages'];
 
 const CANONICAL_PROFILE_ROUTES = new Set(['/profile/abhi-tanwar']);
 
@@ -47,7 +44,7 @@ export function isLegacyDemoRoute(pathname: string) {
 
   // The portfolio index is backed by /api/funded. Its old slug details are
   // static fixtures and have no verified UUID mapping to a canonical company.
-  return normalized.startsWith('/portföy/');
+  return normalized.startsWith('/portfolio/');
 }
 
 export function legacyDemoRoutesEnabled() {

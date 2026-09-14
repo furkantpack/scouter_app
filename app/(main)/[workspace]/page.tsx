@@ -7,10 +7,7 @@ export default function WorkspacePage({
 }: {
   params: { workspace: string };
 }) {
-  if (
-    decodeURIComponent(params.workspace).toLocaleLowerCase('tr-TR') !==
-    'portföy'
-  ) {
+  if (decodeURIComponent(params.workspace).toLowerCase() !== 'portfolio') {
     notFound();
   }
 

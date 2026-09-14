@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { hasValidCronAuthorization } from '../lib/cron-auth.ts';
+import { resolveEngineWorkerUrl } from '../lib/engine-worker-url.ts';
 
 const read = (path: string) =>
   readFileSync(new URL(path, import.meta.url), 'utf8');
@@ -22,7 +23,10 @@ test('cron authorization rejects missing, incorrect, and user-only requests', ()
   const secret = 'test-cron-secret-at-least-16-chars';
   assert.equal(hasValidCronAuthorization(null, secret), false);
   assert.equal(hasValidCronAuthorization('Bearer incorrect', secret), false);
-  assert.equal(hasValidCronAuthorization('Bearer user-access-token', secret), false);
+  assert.equal(
+    hasValidCronAuthorization('Bearer user-access-token', secret),
+    false,
+  );
   assert.equal(hasValidCronAuthorization(`Bearer ${secret}`, secret), true);
   assert.equal(hasValidCronAuthorization(`Bearer ${secret}`, ''), false);
   assert.match(
@@ -42,6 +46,43 @@ test('an authorized worker invocation remains bounded to one job', () => {
   assert.match(workerRoute, /export const runtime = 'nodejs'/);
   assert.match(workerRoute, /export const maxDuration = 300/);
   assert.match(workerRoute, /claimEngineJobs\(admin, leaseOwner, 1,/);
-  assert.match(workerRoute, /export async function POST\(request: Request\)[\s\S]*waitUntil\(/);
+  assert.match(
+    workerRoute,
+    /export async function POST\(request: Request\)[\s\S]*waitUntil\(/,
+  );
   assert.match(workerRoute, /status: 202/);
+});
+
+test('immediate dispatch prefers the canonical production deployment', () => {
+  assert.deepEqual(
+    resolveEngineWorkerUrl('https://request.example/api/onboarding', {
+      NODE_ENV: 'production',
+      VERCEL_PROJECT_PRODUCTION_URL: 'app.scouter.so',
+      VERCEL_BRANCH_URL: 'main.scouter.vercel.app',
+      VERCEL_URL: 'protected-deployment.vercel.app',
+    }),
+    {
+      url: 'https://app.scouter.so/api/internal/engine-worker',
+      source: 'production',
+    },
+  );
+});
+
+test('dispatch URL resolution has deterministic safe fallbacks', () => {
+  assert.equal(
+    resolveEngineWorkerUrl('https://request.example/api/onboarding', {
+      NODE_ENV: 'production',
+      VERCEL_URL: 'not/a/host',
+    }),
+    null,
+  );
+  assert.deepEqual(
+    resolveEngineWorkerUrl('http://localhost:3000/api/onboarding', {
+      NODE_ENV: 'development',
+    }),
+    {
+      url: 'http://localhost:3000/api/internal/engine-worker',
+      source: 'local',
+    },
+  );
 });

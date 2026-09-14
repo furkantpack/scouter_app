@@ -2,7 +2,8 @@ import 'server-only';
 
 import { waitUntil } from '@vercel/functions';
 
-const WORKER_PATH = '/api/internal/engine-worker';
+import { resolveEngineWorkerUrl } from '@/lib/engine-worker-url';
+
 const DISPATCH_TIMEOUT_MS = 10_000;
 
 export type EngineWorkerDispatchSchedule =
@@ -15,36 +16,10 @@ export type EngineWorkerDispatchSchedule =
         | 'wait_until_registration_failed';
     };
 
-function dispatchErrorReason(error: unknown) {
-  return error instanceof DOMException && error.name === 'TimeoutError'
-    ? 'request_timeout'
-    : 'request_failed';
-}
-
-function workerUrl(request: Request) {
-  const deploymentHost = process.env.VERCEL_URL?.trim();
-  if (deploymentHost) {
-    if (!/^[a-z0-9.-]+$/i.test(deploymentHost)) return null;
-    try {
-      return new URL(WORKER_PATH, `https://${deploymentHost}`).toString();
-    } catch {
-      return null;
-    }
-  }
-
-  if (process.env.NODE_ENV !== 'production') {
-    const requestUrl = new URL(request.url);
-    if (['localhost', '127.0.0.1', '[::1]'].includes(requestUrl.hostname))
-      return new URL(WORKER_PATH, requestUrl.origin).toString();
-  }
-
-  return null;
-}
-
 async function dispatchEngineWorker(request: Request) {
   const secret = process.env.CRON_SECRET;
-  const url = workerUrl(request);
-  if (!secret || !url) return false;
+  const target = resolveEngineWorkerUrl(request.url);
+  if (!secret || !target) return false;
 
   const headers = new Headers({ authorization: `Bearer ${secret}` });
   const protectionBypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
@@ -52,7 +27,7 @@ async function dispatchEngineWorker(request: Request) {
     headers.set('x-vercel-protection-bypass', protectionBypass);
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(target.url, {
       method: 'POST',
       headers,
       cache: 'no-store',
@@ -67,9 +42,9 @@ async function dispatchEngineWorker(request: Request) {
     }
     console.info('[engine-dispatch] worker request accepted', { status: 202 });
     return true;
-  } catch (error) {
+  } catch {
     console.warn('[engine-dispatch] worker request failed', {
-      reason: dispatchErrorReason(error),
+      reason: 'request_failed',
     });
     return false;
   }
@@ -84,7 +59,8 @@ export function scheduleEngineWorkerDispatch(
     });
     return { scheduled: false, reason: 'cron_secret_missing' };
   }
-  if (!workerUrl(request)) {
+  const target = resolveEngineWorkerUrl(request.url);
+  if (!target) {
     console.warn('[engine-dispatch] immediate dispatch skipped', {
       reason: 'worker_url_unavailable',
       vercelUrlConfigured: Boolean(process.env.VERCEL_URL?.trim()),
@@ -92,6 +68,9 @@ export function scheduleEngineWorkerDispatch(
     });
     return { scheduled: false, reason: 'worker_url_unavailable' };
   }
+  console.info('[engine-dispatch] immediate dispatch registered', {
+    target: target.source,
+  });
   try {
     waitUntil(dispatchEngineWorker(request));
     return { scheduled: true };

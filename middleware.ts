@@ -1,10 +1,15 @@
+import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import { type NextRequest, NextResponse } from 'next/server';
-import { supabaseFetch } from '@/lib/supabase/fetch';
+
 import {
   isLegacyDemoRoute,
   legacyDemoRoutesEnabled,
 } from '@/lib/legacy-demo-routes';
+import {
+  CANONICAL_PORTFOLIO_PATH,
+  canonicalizePortfolioPath,
+} from '@/lib/portfolio-route';
+import { supabaseFetch } from '@/lib/supabase/fetch';
 
 const protectedPrefixes = [
   '/add-product',
@@ -16,8 +21,7 @@ const protectedPrefixes = [
   '/network',
   '/network-mode',
   '/profile',
-  '/portf%C3%B6y',
-  '/portföy',
+  CANONICAL_PORTFOLIO_PATH,
   '/exit-companies',
   '/pages',
   '/team',
@@ -25,6 +29,15 @@ const protectedPrefixes = [
 ];
 
 export async function middleware(request: NextRequest) {
+  const canonicalPortfolioPath = canonicalizePortfolioPath(
+    request.nextUrl.pathname,
+  );
+  if (canonicalPortfolioPath) {
+    const destination = request.nextUrl.clone();
+    destination.pathname = canonicalPortfolioPath;
+    return NextResponse.redirect(destination, 308);
+  }
+
   if (
     request.nextUrl.pathname === '/thesis' ||
     request.nextUrl.pathname.startsWith('/thesis/')
@@ -51,7 +64,11 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  if (request.nextUrl.pathname.startsWith('/api/') || request.nextUrl.pathname.startsWith('/auth/')) return NextResponse.next();
+  if (
+    request.nextUrl.pathname.startsWith('/api/') ||
+    request.nextUrl.pathname.startsWith('/auth/')
+  )
+    return NextResponse.next();
 
   const isProtected = protectedPrefixes.some((prefix) =>
     request.nextUrl.pathname.startsWith(prefix),
@@ -83,12 +100,17 @@ export async function middleware(request: NextRequest) {
     },
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     loginUrl.search = '';
-    loginUrl.searchParams.set('next', request.nextUrl.pathname + request.nextUrl.search);
+    loginUrl.searchParams.set(
+      'next',
+      request.nextUrl.pathname + request.nextUrl.search,
+    );
     const redirect = NextResponse.redirect(loginUrl);
     response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
     redirect.headers.set('Cache-Control', 'no-store');

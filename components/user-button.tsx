@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useWorkspace } from '@/contexts/organization-context';
 import {
   RiAddLine,
   RiArrowDownSLine,
@@ -14,12 +15,11 @@ import {
 } from '@remixicon/react';
 import { useTheme } from 'next-themes';
 
+import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/utils/cn';
 import * as Divider from '@/components/ui/divider';
 import * as Dropdown from '@/components/ui/dropdown';
 import * as Switch from '@/components/ui/switch';
-import { useWorkspace } from '@/contexts/organization-context';
-import { createClient } from '@/lib/supabase/client';
 
 import IconVerifiedFill from '~/icons/icon-verified-fill.svg';
 
@@ -27,7 +27,8 @@ export function UserButton({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const { user, profile } = useWorkspace();
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || 'Scouter User';
+  const displayName =
+    profile?.full_name || user?.user_metadata?.full_name || 'Scouter User';
   const email = user?.email || '';
 
   async function signOut() {
@@ -60,9 +61,7 @@ export function UserButton({ className }: { className?: string }) {
               {displayName}
               <IconVerifiedFill className='size-5 text-verified-base' />
             </div>
-            <div className='text-paragraph-xs text-text-sub-600'>
-              {email}
-            </div>
+            <div className='text-paragraph-xs text-text-sub-600'>{email}</div>
           </div>
 
           <div className='flex size-6 items-center justify-center rounded-md'>
@@ -91,7 +90,7 @@ export function UserButton({ className }: { className?: string }) {
             </Link>
           </Dropdown.Item>
           <Dropdown.Item asChild>
-            <Link href='/portf%C3%B6y'>
+            <Link href='/portfolio'>
               <Dropdown.ItemIcon as={RiLayoutGridLine} />
               Portfolio
             </Link>
@@ -122,7 +121,8 @@ export function UserButtonMobile({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const { user, profile } = useWorkspace();
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || 'Scouter User';
+  const displayName =
+    profile?.full_name || user?.user_metadata?.full_name || 'Scouter User';
   const email = user?.email || '';
 
   async function signOut() {
@@ -151,9 +151,7 @@ export function UserButtonMobile({ className }: { className?: string }) {
             {displayName}
             <IconVerifiedFill className='size-5 text-verified-base' />
           </div>
-          <div className='text-paragraph-sm text-text-sub-600'>
-            {email}
-          </div>
+          <div className='text-paragraph-sm text-text-sub-600'>{email}</div>
         </div>
         <div
           className={cn(
@@ -186,7 +184,7 @@ export function UserButtonMobile({ className }: { className?: string }) {
             </Link>
           </Dropdown.Item>
           <Dropdown.Item asChild>
-            <Link href='/portf%C3%B6y'>
+            <Link href='/portfolio'>
               <Dropdown.ItemIcon as={RiLayoutGridLine} />
               Portfolio
             </Link>

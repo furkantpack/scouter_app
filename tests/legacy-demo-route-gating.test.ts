@@ -10,7 +10,8 @@ const read = (path: string) =>
 const middleware = read('../middleware.ts');
 const staticCatchAll = read('../app/[...staticPage]/route.ts');
 const exitCompanies = read('../app/(main)/exit-companies/page.tsx');
-const portfolioIndex = read('../app/(main)/[workspace]/page.tsx');
+const portfolioIndex = read('../app/(main)/portfolio/page.tsx');
+const legacyPortfolioIndex = read('../app/(main)/portföy/page.tsx');
 const legacyPortfolio = read('../app/(main)/[workspace]/[slug]/page.tsx');
 const userButton = read('../components/user-button.tsx');
 const sidebar = read('../components/sidebar.tsx');
@@ -26,8 +27,8 @@ test('production demo gate covers every known renderable legacy route', () => {
     '/profile/marcus-webb',
     '/profile/danny-chmaytelli',
     '/profile/vadim-axelrod',
-    '/portf%C3%B6y/notion',
-    '/portföy/stripe',
+    '/portfolio/notion',
+    '/portfolio/stripe',
     '/dashboard/index.html',
     '/company/vercel',
     '/company/vercel/index.html',
@@ -40,8 +41,7 @@ test('production demo gate covers every known renderable legacy route', () => {
 
 test('canonical product routes and the API-backed founder profile remain available', () => {
   for (const pathname of [
-    '/portf%C3%B6y',
-    '/portföy/',
+    '/portfolio',
     '/funded',
     '/funded/0f92e4b2-84da-4d31-90dd-79fd92775f60',
     '/network',
@@ -56,17 +56,35 @@ test('canonical product routes and the API-backed founder profile remain availab
   }
 
   assert.match(portfolioIndex, /return <PageProducts portfolio \/>/);
-  assert.match(founderDrawer, /'88264496-cf9f-4423-80fd-067c92fc070d': '\/profile\/abhi-tanwar'/);
+  assert.match(legacyPortfolioIndex, /permanentRedirect\('\/portfolio'\)/);
+  assert.match(
+    founderDrawer,
+    /'88264496-cf9f-4423-80fd-067c92fc070d': '\/profile\/abhi-tanwar'/,
+  );
 });
 
 test('middleware returns a non-indexable production 404 before auth or rendering', () => {
-  const gate = middleware.indexOf('isLegacyDemoRoute(request.nextUrl.pathname)');
-  const authBypass = middleware.indexOf("request.nextUrl.pathname.startsWith('/api/')");
+  const gate = middleware.indexOf(
+    'isLegacyDemoRoute(request.nextUrl.pathname)',
+  );
+  const authBypass = middleware.indexOf(
+    "request.nextUrl.pathname.startsWith('/api/')",
+  );
 
   assert.ok(gate >= 0 && authBypass > gate);
   assert.match(middleware, /!legacyDemoRoutesEnabled\(\)/);
   assert.match(middleware, /status: 404/);
   assert.match(middleware, /'X-Robots-Tag': 'noindex, nofollow'/);
+});
+
+test('middleware redirects legacy unicode portfolio URLs before auth', () => {
+  const redirect = middleware.indexOf('canonicalizePortfolioPath');
+  const authBypass = middleware.indexOf(
+    "request.nextUrl.pathname.startsWith('/api/')",
+  );
+  assert.ok(redirect >= 0 && redirect < authBypass);
+  assert.match(middleware, /NextResponse\.redirect\(destination, 308\)/);
+  assert.match(middleware, /CANONICAL_PORTFOLIO_PATH/);
 });
 
 test('legacy server routes have defense-in-depth production notFound gates', () => {
@@ -88,7 +106,10 @@ test('legacy server routes have defense-in-depth production notFound gates', () 
 test('production navigation no longer points to retired demo pages', () => {
   assert.doesNotMatch(userButton, /href=['"]\/profile['"]/);
   assert.doesNotMatch(sidebar, /exit-companies|profile\/marcus-webb/);
-  assert.match(sidebar, /label: 'Portfolio', href: '\/portföy'/);
+  assert.match(sidebar, /label: 'Portfolio', href: '\/portfolio'/);
   assert.match(portfolioIndex, /<PageProducts portfolio \/>/);
-  assert.match(read('../app/(main)/products/products-page.tsx'), /href: `\/funded\/\$\{company\.id\}`/);
+  assert.match(
+    read('../app/(main)/products/products-page.tsx'),
+    /href: `\/funded\/\$\{company\.id\}`/,
+  );
 });
