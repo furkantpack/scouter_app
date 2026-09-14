@@ -2,6 +2,10 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
 import {
+  fundedPageEnabled,
+  isFundedPagePath,
+} from '@/lib/funded-page-visibility';
+import {
   isLegacyDemoRoute,
   legacyDemoRoutesEnabled,
 } from '@/lib/legacy-demo-routes';
@@ -36,6 +40,16 @@ export async function middleware(request: NextRequest) {
     const destination = request.nextUrl.clone();
     destination.pathname = canonicalPortfolioPath;
     return NextResponse.redirect(destination, 308);
+  }
+
+  if (isFundedPagePath(request.nextUrl.pathname) && !fundedPageEnabled()) {
+    return new NextResponse('Not found', {
+      status: 404,
+      headers: {
+        'Cache-Control': 'no-store',
+        'X-Robots-Tag': 'noindex, nofollow',
+      },
+    });
   }
 
   if (
