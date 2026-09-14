@@ -94,9 +94,7 @@ test('completed onboarding authorizes and throttles before durable thesis enqueu
   const post = onboardingRoute.slice(
     onboardingRoute.indexOf('export async function POST'),
   );
-  const guard = post.indexOf(
-    'if (body.completed) requireWorkspaceRole(membership)',
-  );
+  const guard = post.indexOf('requireWorkspaceRole(membership)');
   const admin = post.indexOf('const admin = createAdminClient()');
   const throttle = post.indexOf('await acquireProductActionRun(admin');
   const generation = post.indexOf('await enqueueThesisEngineJob(admin');

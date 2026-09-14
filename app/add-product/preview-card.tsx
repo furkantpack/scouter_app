@@ -1,6 +1,7 @@
 'use client';
 
 import type * as React from 'react';
+import Image from 'next/image';
 import {
   RiBriefcase4Fill,
   RiCheckboxCircleFill,
@@ -10,73 +11,31 @@ import {
   RiUserSharedLine,
   RiVerifiedBadgeLine,
 } from '@remixicon/react';
-import { useAtomValue } from 'jotai';
 
 import { ThemedImage } from '@/components/themed-image';
 
-import { investorOnboardingAtom } from './store-investor-onboarding';
-
-const labels: Record<string, string> = {
-  'pre-seed': 'Pre-seed',
-  seed: 'Seed',
-  'series-a': 'Series A',
-  'all-stages': 'All stages',
-  ai: 'AI',
-  fintech: 'Fintech',
-  'deep-tech': 'Deep Tech',
-  climate: 'Climate',
-  saas: 'SaaS',
-  consumer: 'Consumer',
-  'sector-agnostic': 'Sector Agnostic',
-  other: 'Other',
-  '25k-100k': '$25K-$100K',
-  '100k-500k': '$100K-$500K',
-  '500k-2m': '$500K-$2M',
-  '2m-plus': '$2M+',
-  '1-5': '1-5/year',
-  '5-15': '5-15/year',
-  '15-30': '15-30/year',
-  '30-plus': '30+/year',
-  'warm-intros': 'Warm intros',
-  events: 'Events',
-  'cold-outreach': 'Cold outreach',
-  databases: 'Databases',
-  'founders-find-me': 'Founders find me',
-  'too-late': 'Too late to deals',
-  'too-much-noise': 'Too much noise',
-  'no-warm-path': 'No warm path',
-  'weak-signal-quality': 'Weak signal quality',
-  'prior-exit': 'Prior exit',
-  'big-tech-background': 'Big tech',
-  'top-university': 'Top university',
-  'stealth-filing': 'Stealth filing',
-  layoff: 'Layoff',
-  'serial-founder': 'Serial founder',
+export type PreviewCardAnswers = {
+  organizationName: string;
+  stage: string;
+  sectors: string;
+  checkSize: string;
+  investmentsPerYear: string;
+  sourcing: string;
+  signals: string;
+  thesisUrl: string;
 };
 
-function labelFor(value: string) {
-  return labels[value] ?? value;
-}
-
-function compactList(values: string[], fallback: string) {
-  return values.length > 0 ? values.map(labelFor).join(', ') : fallback;
-}
-
-export default function PreviewCard() {
-  const answers = useAtomValue(investorOnboardingAtom);
-
-  const sectors = compactList(answers.sectors, 'AI, SaaS');
-  const signals = compactList(answers.signals, 'Prior exit, Big tech');
-  const stage = answers.stage ? labelFor(answers.stage) : 'Seed';
-  const checkSize = answers.checkSize
-    ? labelFor(answers.checkSize)
-    : '$100K-$500K';
-  const pace = answers.investmentsPerYear
-    ? labelFor(answers.investmentsPerYear)
-    : '5-15/year';
-  const sourcing = answers.sourcing
-    ? labelFor(answers.sourcing)
-    : 'Warm intros';
+export default function PreviewCard({
+  answers,
+}: {
+  answers: PreviewCardAnswers;
+}) {
+  const stage = answers.stage || 'Investment stage';
+  const sectors = answers.sectors || 'Your sectors';
+  const checkSize = answers.checkSize || 'Not set';
+  const pace = answers.investmentsPerYear || 'Not set';
+  const sourcing = answers.sourcing || 'Sourcing preference';
+  const signals = answers.signals || 'Founder signals';
   const thesisSource = answers.thesisUrl.trim()
     ? 'Thesis generated from your portfolio URL.'
     : 'Add your portfolio URL and Scouter will generate your thesis.';
@@ -84,21 +43,11 @@ export default function PreviewCard() {
     100,
     54 +
       (answers.stage ? 8 : 0) +
-      Math.min(answers.sectors.length, 3) * 4 +
+      (answers.sectors ? 12 : 0) +
       (answers.sourcing ? 8 : 0) +
-      Math.min(answers.signals.length, 3) * 4 +
+      (answers.signals ? 12 : 0) +
       (answers.thesisUrl.trim() ? 6 : 0),
   );
-  const insightChips = [
-    {
-      label: sourcing,
-      icon: RiUserSharedLine,
-    },
-    {
-      label: signals,
-      icon: RiVerifiedBadgeLine,
-    },
-  ];
 
   return (
     <div className='relative w-full min-w-0 min-[400px]:w-[370px] min-[400px]:shrink-0'>
@@ -124,13 +73,10 @@ export default function PreviewCard() {
               Investor Profile
             </div>
           </div>
-          <button
-            type='button'
-            className='inline-flex h-10 items-center gap-2 rounded-xl bg-bg-white-0 px-3 text-label-md text-text-sub-600 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'
-          >
+          <span className='inline-flex h-10 items-center gap-2 rounded-xl bg-bg-white-0 px-3 text-label-md text-text-sub-600 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
             <RiShareForwardLine className='size-4' />
             Share
-          </button>
+          </span>
         </div>
 
         <div className='relative grid grid-cols-3 rounded-2xl bg-bg-weak-50 p-1 text-center text-label-md text-text-soft-400'>
@@ -144,9 +90,11 @@ export default function PreviewCard() {
         <div className='relative flex flex-col items-center text-center'>
           <div className='relative'>
             <div className='grid size-[82px] place-items-center rounded-[22px] bg-[linear-gradient(145deg,#fff7ed,#ffffff)] shadow-regular-sm ring-1 ring-inset ring-orange-100'>
-              <img
+              <Image
                 src='/images/brand/scouter-mark.webp'
                 alt='Scouter'
+                width={32}
+                height={32}
                 className='h-8 w-auto object-contain'
               />
             </div>
@@ -154,8 +102,8 @@ export default function PreviewCard() {
               <RiCheckboxCircleFill className='size-5' />
             </div>
           </div>
-          <div className='mt-3 text-title-h5 text-text-strong-950'>
-            Founder Signal Card
+          <div className='mt-3 max-w-full truncate text-title-h5 text-text-strong-950'>
+            {answers.organizationName.trim() || 'Your organization'}
           </div>
           <div className='mt-1 max-w-[290px] text-paragraph-sm text-text-sub-600'>
             {stage} investor focused on {sectors}.
@@ -169,7 +117,9 @@ export default function PreviewCard() {
 
         <div className='relative py-1'>
           <div className='flex items-center justify-between gap-3'>
-            <div className='text-label-xs text-text-sub-600'>Match score</div>
+            <div className='text-label-xs text-text-sub-600'>
+              Profile strength
+            </div>
             <div className='text-label-xs font-medium text-text-strong-950'>
               {signalScore}/100
             </div>
@@ -183,15 +133,8 @@ export default function PreviewCard() {
         </div>
 
         <div className='relative flex flex-wrap gap-2'>
-          {insightChips.map(({ label, icon: Icon }, index) => (
-            <span
-              key={`${label}-${index}`}
-              className='inline-flex items-center gap-1.5 rounded-full bg-bg-weak-50 px-2.5 py-1 text-label-xs text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200'
-            >
-              <Icon className='size-3.5 text-text-soft-400' />
-              {label}
-            </span>
-          ))}
+          <InsightChip icon={RiUserSharedLine} label={sourcing} />
+          <InsightChip icon={RiVerifiedBadgeLine} label={signals} />
         </div>
 
         <div className='relative rounded-2xl bg-bg-white-0 p-3 text-paragraph-sm text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200'>
@@ -221,14 +164,26 @@ function MetricCard({ label, value }: { label: string; value: string }) {
   );
 }
 
+function InsightChip({
+  icon: Icon,
+  label,
+}: {
+  icon: React.ElementType;
+  label: string;
+}) {
+  return (
+    <span className='inline-flex max-w-full items-center gap-1.5 rounded-full bg-bg-weak-50 px-2.5 py-1 text-label-xs text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200'>
+      <Icon className='size-3.5 shrink-0 text-text-soft-400' />
+      <span className='truncate'>{label}</span>
+    </span>
+  );
+}
+
 function SharePill({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <button
-      type='button'
-      className='inline-flex h-9 items-center gap-2 rounded-full bg-bg-weak-50 px-3 text-label-sm text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200'
-    >
+    <span className='inline-flex h-9 items-center gap-2 rounded-full bg-bg-weak-50 px-3 text-label-sm text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200'>
       {icon}
       {label}
-    </button>
+    </span>
   );
 }

@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       typeof body.completed !== 'boolean'
     )
       throw new ApiError('Invalid onboarding request.');
-    if (body.completed) requireWorkspaceRole(membership);
+    requireWorkspaceRole(membership);
     const { data, error } = await supabase
       .from('onboarding_questions')
       .select('*')

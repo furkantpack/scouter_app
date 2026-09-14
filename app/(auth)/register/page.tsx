@@ -77,11 +77,15 @@ export default function PageRegister() {
           ),
         }),
       });
-      if (result.signedIn)
-        window.location.assign(
-          safeNext(new URLSearchParams(window.location.search).get('next')),
+      if (result.signedIn) {
+        const next = safeNext(
+          new URLSearchParams(window.location.search).get('next'),
+          '/dashboard',
         );
-      else {
+        window.location.assign(
+          '/auth/continue?next=' + encodeURIComponent(next),
+        );
+      } else {
         sessionStorage.setItem(
           'scouter_confirmation_email',
           String(values.get('email')).trim(),
